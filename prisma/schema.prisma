@@ -1,0 +1,97 @@
+// This is your Prisma schema file
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      String   @default("AUTHOR")
+  createdAt DateTime @default(now())
+  reviews   Review[]
+}
+
+model Article {
+  id                 String   @id @default(cuid())
+  title              String
+  abstract           String
+  keywords           String
+  authors            String
+  authorEmail        String   @default("")
+  institution        String   @default("")
+  country            String   @default("")
+  coAuthors          String   @default("")
+  manuscriptType     String   @default("")
+  specialty          String   @default("")
+  wordCount          Int      @default(0)
+  conflictOfInterest String   @default("")
+  fundingSource      String   @default("")
+  dataAvailability   String   @default("")
+  manuscriptFile     String   @default("")
+  status             String   @default("SUBMITTED")
+  submittedAt        DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  publishedAt        DateTime?
+  volume             String?
+  issue              String?
+  pages              String?
+  doi                String?
+  imageUrl           String?
+  order              Int      @default(0)
+  reviews            Review[]
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  articleId   String
+  reviewerId  String
+  decision    String?
+  comments    String?
+  privateNotes String?
+  submittedAt DateTime?
+  createdAt   DateTime @default(now())
+  article     Article  @relation(fields: [articleId], references: [id])
+  reviewer    User     @relation(fields: [reviewerId], references: [id])
+}
+
+model EditorialMember {
+  id          String  @id @default(cuid())
+  name        String
+  title       String
+  institution String
+  country     String
+  role        String
+  specialty   String?
+  email       String?
+  imageUrl    String?
+  order       Int     @default(0)
+  active      Boolean @default(true)
+}
+
+model Issue {
+  id          String    @id @default(cuid())
+  volume      Int
+  issue       Int
+  year        Int
+  month       String
+  title       String?
+  description String?
+  publishedAt DateTime?
+  coverImage  String?
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  createdAt DateTime @default(now())
+  read      Boolean  @default(false)
+}
