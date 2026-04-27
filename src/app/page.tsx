@@ -39,7 +39,7 @@ export default function HomePage() {
       </section>
       <section style={{background:"#2b6cb0",padding:"24px 20px"}}>
         <div style={{maxWidth:"900px",margin:"0 auto",display:"flex",justifyContent:"space-around",flexWrap:"wrap",gap:"16px",color:"white",textAlign:"center"}}>
-          {[["2025","Founded"],["Free","No Article Charges"],["Open","Access Policy"],["4 Wk","Avg Review Time"]].map(([v,l],i)=>(
+          {[["2026","Founded"],["Free","No Article Charges"],["Open","Access Policy"],["4 Wk","Avg Review Time"]].map(([v,l],i)=>(
             <div key={i}><div style={{fontSize:"1.8rem",fontWeight:800}}>{v}</div><div style={{fontSize:"0.85rem",opacity:0.85}}>{l}</div></div>
           ))}
         </div>

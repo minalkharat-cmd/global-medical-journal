@@ -51,7 +51,7 @@ export default function CorrectionsPage() {
 
         <section>
           <h2 className="text-2xl font-bold text-gray-900 mb-3">How to Report Concerns</h2>
-          <p className="leading-relaxed">Anyone who identifies an error or has concerns about a published article may contact our editorial office at <a href="mailto:editor@globalmedicaljounal.org" className="text-blue-700 underline">editor@globalmedicaljounal.org</a>. All concerns are treated confidentially and investigated according to COPE guidelines.</p>
+          <p className="leading-relaxed">Anyone who identifies an error or has concerns about a published article may contact our editorial office at <a href="mailto:medicalvanguard@zohomail.in" className="text-blue-700 underline">medicalvanguard@zohomail.in</a>. All concerns are treated confidentially and investigated according to COPE guidelines.</p>
         </section>
 
         <section>

@@ -58,7 +58,7 @@ export default function Contact() {
             <div className='space-y-5'>
               <div className='border-b border-gray-100 pb-4'>
                 <h3 className='font-semibold text-gray-800 mb-1'>How do I submit a manuscript?</h3>
-                <p className='text-gray-600 text-sm'>Visit our Submit page and send your manuscript as a Word file attachment to our editorial email. Include a cover letter explaining the significance of your work.</p>
+                <p className='text-gray-600 text-sm'>Use our online submission portal at medical-vanguard.vercel.app/submit. Complete the 3-step form with your author details, manuscript information, and ethical declarations. All submissions undergo double-blind peer review.</p>
               </div>
               <div className='border-b border-gray-100 pb-4'>
                 <h3 className='font-semibold text-gray-800 mb-1'>Is there an Article Processing Charge (APC)?</h3>
@@ -78,7 +78,7 @@ export default function Contact() {
               </div>
               <div className='border-b border-gray-100 pb-4'>
                 <h3 className='font-semibold text-gray-800 mb-1'>How do I join the editorial board?</h3>
-                <p className='text-gray-600 text-sm'>Please send your CV and a brief statement of interest to our editorial email. We welcome applications from experienced researchers and clinicians.</p>
+                <p className='text-gray-600 text-sm'>Researchers and clinicians interested in peer reviewing can apply at medical-vanguard.vercel.app/reviewers. For editorial board positions, please email your CV and a brief statement of interest to medicalvanguard@zohomail.in.</p>
               </div>
             </div>
           </div>
