@@ -1,38 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Rate limiting store (in-memory, resets on redeploy)
-const attempts: Map<string, { count: number; resetAt: number }> = new Map();
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+
+function getRateLimitKey(req: NextRequest): string {
+  return req.headers.get('x-forwarded-for') ?? 'unknown';
+}
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
-  const now = Date.now();
-
-  // Rate limit: max 5 attempts per 15 minutes per IP
-  const record = attempts.get(ip);
-  if (record) {
-    if (now < record.resetAt) {
-      if (record.count >= 5) {
-        return NextResponse.json({ error: 'Too many attempts. Try again later.' }, { status: 429 });
-      }
-      record.count++;
-    } else {
-      attempts.set(ip, { count: 1, resetAt: now + 15 * 60 * 1000 });
-    }
-  } else {
-    attempts.set(ip, { count: 1, resetAt: now + 15 * 60 * 1000 });
-  }
-
   try {
-    const { password } = await req.json();
+    const ip = getRateLimitKey(req);
+    const now = Date.now();
+    const windowMs = 15 * 60 * 1000;
+    const maxAttempts = 5;
+
+    const current = rateLimitMap.get(ip);
+    if (current) {
+      if (now < current.resetTime) {
+        if (current.count >= maxAttempts) {
+          return NextResponse.json(
+            { error: 'Too many attempts. Try again in 15 minutes.' },
+            { status: 429 }
+          );
+        }
+        rateLimitMap.set(ip, { count: current.count + 1, resetTime: current.resetTime });
+      } else {
+        rateLimitMap.set(ip, { count: 1, resetTime: now + windowMs });
+      }
+    } else {
+      rateLimitMap.set(ip, { count: 1, resetTime: now + windowMs });
+    }
+
+    const body = await req.json();
+    const { password } = body as { password: string };
     const adminPassword = process.env.ADMIN_PASSWORD || 'mv-admin-2025';
 
     if (!password || password !== adminPassword) {
       return NextResponse.json({ error: 'Incorrect password' }, { status: 401 });
     }
 
-    // Clear attempts on success
-    attempts.delete(ip);
-    return NextResponse.json({ success: true, token: adminPassword });
+    rateLimitMap.delete(ip);
+    return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   }

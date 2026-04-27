@@ -262,15 +262,6 @@ async function notifyEditor(
   });
 }
 
-
-function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !email.includes('\n') && !email.includes('\r');
-}
-
-function sanitizeInput(input: string): string {
-  return input.replace(/<[^>]*>/g, '').trim().substring(0, 5000);
-}
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
