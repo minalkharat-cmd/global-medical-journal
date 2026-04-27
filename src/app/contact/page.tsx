@@ -1,68 +1,89 @@
-'use client'
-import { useState } from 'react'
-import { Mail, Phone, MapPin, Clock, CheckCircle } from 'lucide-react'
-
 export default function Contact() {
-  const [sent, setSent] = useState(false)
-  const [form, setForm] = useState({ name:'', email:'', subject:'', message:'' })
-  const handleChange = (e:any) => setForm({...form, [e.target.name]: e.target.value})
-  const handleSubmit = async (e:any) => {
-    e.preventDefault()
-    await fetch('/api/contact', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(form) })
-    setSent(true)
-  }
-  if(sent) return (
-    <div className="max-w-2xl mx-auto px-4 py-24 text-center">
-      <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-      <h2 className="text-2xl font-bold text-gray-800 mb-2">Message Sent!</h2>
-      <p className="text-gray-500">We will respond within 2 business days.</p>
-    </div>
-  )
   return (
-    <div className="max-w-6xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold text-gray-800 mb-2">Contact Us</h1>
-      <p className="text-gray-500 mb-10">Get in touch with the editorial team</p>
-      <div className="grid md:grid-cols-3 gap-8">
-        <div className="space-y-6">
-          {[{icon:Mail,title:'Email',lines:['editor@globalmedjournal.org','submissions@globalmedjournal.org']},{icon:Phone,title:'Phone',lines:['+1 (617) 555-0123','Mon-Fri, 9AM-5PM EST']},{icon:MapPin,title:'Address',lines:['Medical Vanguard','123 Medical Avenue','Boston, MA 02115, USA']},{icon:Clock,title:'Office Hours',lines:['Monday-Friday: 9AM-5PM EST','Response time: 2 business days']}].map(({icon:Icon,title,lines}) => (
-            <div key={title} className="flex gap-4">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Icon className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-800">{title}</h3>
-                {lines.map((l,i) => <p key={i} className="text-sm text-gray-500">{l}</p>)}
-              </div>
-            </div>
-          ))}
+    <div className='min-h-screen bg-white'>
+      <div className='bg-blue-900 text-white py-12 px-6'>
+        <div className='max-w-4xl mx-auto'>
+          <h1 className='text-4xl font-bold mb-2'>Contact Us</h1>
+          <p className='text-blue-200'>We are here to help with any queries about your submission or our journal</p>
         </div>
-        <div className="md:col-span-2">
-          <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 space-y-5">
-            <div className="grid md:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name *</label>
-                <input type="text" name="name" value={form.name} onChange={handleChange} required className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Email Address *</label>
-                <input type="email" name="email" value={form.email} onChange={handleChange} required className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-              </div>
-            </div>
+      </div>
+      <div className='max-w-4xl mx-auto px-6 py-12'>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-12'>
+          <div className='space-y-8'>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Subject *</label>
-              <select name="subject" value={form.subject} onChange={handleChange} required className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500">
-                <option value="">Select a subject...</option>
-                {['Submission Inquiry','Peer Review','Editorial Query','Indexing & Metrics','Technical Issue','Other'].map(s => <option key={s}>{s}</option>)}
-              </select>
+              <h2 className='text-2xl font-bold text-gray-800 mb-6'>Get in Touch</h2>
+              <div className='space-y-5'>
+                <div className='flex gap-4'>
+                  <div className='text-2xl'>Email</div>
+                  <div>
+                    <h3 className='font-semibold text-gray-800'>Editorial Office</h3>
+                    <a href='mailto:minalkharat@gmail.com' className='text-blue-700 hover:underline'>minalkharat@gmail.com</a>
+                    <p className='text-gray-500 text-sm'>For manuscript submissions, editorial queries, and peer review requests</p>
+                  </div>
+                </div>
+                <div className='flex gap-4'>
+                  <div className='text-2xl'>Addr</div>
+                  <div>
+                    <h3 className='font-semibold text-gray-800'>Publisher Address</h3>
+                    <p className='text-gray-600'>Medical Vanguard</p>
+                    <p className='text-gray-600'>566 College Road</p>
+                    <p className='text-gray-600'>Mahasamund, Chhattisgarh 493445</p>
+                    <p className='text-gray-600'>India</p>
+                  </div>
+                </div>
+                <div className='flex gap-4'>
+                  <div className='text-2xl'>Tel</div>
+                  <div>
+                    <h3 className='font-semibold text-gray-800'>Phone</h3>
+                    <p className='text-gray-600'>+91 8103713606</p>
+                    <p className='text-gray-500 text-sm'>Available Monday to Friday, 9:00 AM to 5:00 PM IST</p>
+                  </div>
+                </div>
+                <div className='flex gap-4'>
+                  <div className='text-2xl'>Web</div>
+                  <div>
+                    <h3 className='font-semibold text-gray-800'>Website</h3>
+                    <a href='https://medical-vanguard.vercel.app' className='text-blue-700 hover:underline'>medical-vanguard.vercel.app</a>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Message *</label>
-              <textarea name="message" value={form.message} onChange={handleChange} required rows={6} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500" />
+            <div className='bg-blue-50 rounded-xl p-5 border border-blue-100'>
+              <h3 className='font-semibold text-gray-800 mb-2'>Response Time</h3>
+              <p className='text-gray-600 text-sm'>We aim to respond to all queries within <strong>2 business days</strong>. For urgent matters, please indicate URGENT in your email subject line.</p>
             </div>
-            <button type="submit" className="bg-blue-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 w-full">Send Message</button>
-          </form>
+          </div>
+          <div>
+            <h2 className='text-2xl font-bold text-gray-800 mb-6'>Frequently Asked Questions</h2>
+            <div className='space-y-5'>
+              <div className='border-b border-gray-100 pb-4'>
+                <h3 className='font-semibold text-gray-800 mb-1'>How do I submit a manuscript?</h3>
+                <p className='text-gray-600 text-sm'>Visit our Submit page and send your manuscript as a Word file attachment to our editorial email. Include a cover letter explaining the significance of your work.</p>
+              </div>
+              <div className='border-b border-gray-100 pb-4'>
+                <h3 className='font-semibold text-gray-800 mb-1'>Is there an Article Processing Charge (APC)?</h3>
+                <p className='text-gray-600 text-sm'>No. Medical Vanguard is currently free to submit and publish. We do not charge authors any fees.</p>
+              </div>
+              <div className='border-b border-gray-100 pb-4'>
+                <h3 className='font-semibold text-gray-800 mb-1'>How long does peer review take?</h3>
+                <p className='text-gray-600 text-sm'>We aim to complete initial review within 1 to 3 days and full peer review within 2 to 4 weeks.</p>
+              </div>
+              <div className='border-b border-gray-100 pb-4'>
+                <h3 className='font-semibold text-gray-800 mb-1'>Can I submit a preprint paper?</h3>
+                <p className='text-gray-600 text-sm'>Yes. We accept manuscripts previously posted on recognised preprint servers such as medRxiv or bioRxiv. Please disclose this in your cover letter.</p>
+              </div>
+              <div className='border-b border-gray-100 pb-4'>
+                <h3 className='font-semibold text-gray-800 mb-1'>Under what licence are articles published?</h3>
+                <p className='text-gray-600 text-sm'>All articles are published under the Creative Commons Attribution 4.0 International (CC BY 4.0) licence. Authors retain full copyright.</p>
+              </div>
+              <div className='border-b border-gray-100 pb-4'>
+                <h3 className='font-semibold text-gray-800 mb-1'>How do I join the editorial board?</h3>
+                <p className='text-gray-600 text-sm'>Please send your CV and a brief statement of interest to our editorial email. We welcome applications from experienced researchers and clinicians.</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
