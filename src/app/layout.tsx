@@ -56,12 +56,12 @@ export default function RootLayout({
               Medical <span style={{ color: "#63b3ed" }}>Vanguard</span>
             </a>
             <div style={{ display: "flex", alignItems: "center", gap: "4px", flexWrap: "wrap" }}>
-              {[["About", "/about"], ["Articles", "/articles"], ["Guidelines", "/guidelines"], ["Editorial Board", "/editorial-board"], ["Contact", "/contact"]].map(([label, href]) => (
+              {[["About", "/about"], ["Articles", "/articles"], ["Guidelines", "/guidelines"], ["Editorial Board", "/editorial-board"], ["For Reviewers", "/reviewers"], ["Contact", "/contact"]].map(([label, href]) => (
                 <a key={label} href={href} style={{ color: "rgba(255,255,255,0.85)", textDecoration: "none", padding: "8px 14px", borderRadius: "6px", fontSize: "0.9rem", fontWeight: 500, transition: "all 0.2s" }}>
                   {label}
                 </a>
               ))}
-              <a href="/guidelines" style={{ background: "#3182ce", color: "white", textDecoration: "none", padding: "8px 18px", borderRadius: "6px", fontSize: "0.9rem", fontWeight: 700, marginLeft: "8px" }}>
+              <a href="/submit" style={{ background: "#3182ce", color: "white", textDecoration: "none", padding: "8px 18px", borderRadius: "6px", fontSize: "0.9rem", fontWeight: 700, marginLeft: "8px" }}>
                 Submit
               </a>
             </div>
@@ -77,7 +77,7 @@ export default function RootLayout({
               </div>
               <div>
                 <h4 style={{ color: "white", fontWeight: 600, marginBottom: "12px" }}>Quick Links</h4>
-                {[["Home", "/"], ["About", "/about"], ["Author Guidelines", "/guidelines"], ["Editorial Board", "/editorial-board"], ["Contact", "/contact"]].map(([label, href]) => (
+                {[["Home", "/"], ["About", "/about"], ["Articles", "/articles"], ["Author Guidelines", "/guidelines"], ["Editorial Board", "/editorial-board"], ["For Reviewers", "/reviewers"], ["Track Manuscript", "/track"], ["Ethics Policy", "/ethics"], ["Contact", "/contact"]].map(([label, href]) => (
                   <div key={label} style={{ marginBottom: "6px" }}><a href={href} style={{ color: "rgba(255,255,255,0.65)", textDecoration: "none", fontSize: "0.9rem" }}>{label}</a></div>
                 ))}
               </div>
