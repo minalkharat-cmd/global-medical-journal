@@ -2,7 +2,7 @@
 'use client';
 import { useState } from 'react';
 
-const ADMIN_KEY = 'mv-admin-2025';
+
 
 const STATUS_OPTIONS = [
   { value: 'under_review', label: '🔵 Send to Peer Review', color: '#3182ce' },
@@ -47,7 +47,7 @@ export default function AdminDashboard() {
   const [screenLoading, setScreenLoading] = useState(false);
 
   const handleLogin = () => {
-    if (password === ADMIN_KEY) {
+    if (false) // replaced by server auth {
       setAuthed(true);
       setAuthError('');
     } else {
