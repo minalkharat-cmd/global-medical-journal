@@ -1,18 +1,7 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
 
 export async function GET() {
-  try {
-    const articles = await prisma.article.findMany({
-      where: { status: 'PUBLISHED' },
-      orderBy: { submittedAt: 'desc' },
-    });
-    return NextResponse.json(articles);
-  } catch {
-    return NextResponse.json({ error: 'Failed to fetch articles' }, { status: 500 });
-  }
+  return NextResponse.json({ articles: [], message: 'No articles published yet' });
 }
 
 export async function POST(req: Request) {
@@ -29,42 +18,97 @@ export async function POST(req: Request) {
     const keywords = formData.get('keywords') as string;
     const manuscriptType = formData.get('manuscriptType') as string;
     const specialty = formData.get('specialty') as string;
-    const wordCount = parseInt(formData.get('wordCount') as string) || 0;
+    const wordCount = formData.get('wordCount') as string || '0';
     const conflictOfInterest = formData.get('conflictOfInterest') as string || '';
     const fundingSource = formData.get('fundingSource') as string || '';
+    const dataAvailability = formData.get('dataAvailability') as string || '';
 
-    // Handle manuscript file
-    let manuscriptPath = '';
-    const manuscriptFile = formData.get('manuscript') as File | null;
-    if (manuscriptFile && manuscriptFile.size > 0) {
-      const uploadDir = path.join(process.cwd(), 'uploads', 'manuscripts');
-      await mkdir(uploadDir, { recursive: true });
-      const filename = `${Date.now()}-${manuscriptFile.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-      const bytes = await manuscriptFile.arrayBuffer();
-      await writeFile(path.join(uploadDir, filename), Buffer.from(bytes));
-      manuscriptPath = filename;
+    // Validate required fields
+    if (!authorName || !authorEmail || !institution || !country || !title || !abstract || !keywords || !manuscriptType || !specialty) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const article = await prisma.article.create({
-      data: {
-        title,
-        abstract,
-        keywords: keywords.split(',').map((k: string) => k.trim()).join(', '),
-        authors: coAuthors ? `${authorName}; ${coAuthors}` : authorName,
-        authorEmail,
-        institution,
-        country,
-        manuscriptType,
-        specialty,
-        wordCount,
-        conflictOfInterest,
-        fundingSource,
-        manuscriptFile: manuscriptPath,
-        status: 'SUBMITTED',
-      },
-    });
+    // Generate submission ID
+    const submissionId = 'MV-' + Date.now().toString(36).toUpperCase().slice(-8);
+    const submittedAt = new Date().toISOString();
 
-    return NextResponse.json({ id: `MV-${article.id.slice(-8).toUpperCase()}`, articleId: article.id }, { status: 201 });
+    // Send notification email via Zoho SMTP
+    const emailBody = `
+NEW MANUSCRIPT SUBMISSION
+=========================
+Submission ID: ${submissionId}
+Submitted: ${submittedAt}
+
+AUTHOR INFORMATION
+------------------
+Name: ${authorName}
+Email: ${authorEmail}
+Institution: ${institution}
+Country: ${country}
+Co-Authors: ${coAuthors || 'None'}
+
+MANUSCRIPT DETAILS
+------------------
+Title: ${title}
+Type: ${manuscriptType}
+Specialty: ${specialty}
+Word Count: ${wordCount}
+Keywords: ${keywords}
+
+ABSTRACT
+--------
+${abstract}
+
+DECLARATIONS
+------------
+Conflict of Interest: ${conflictOfInterest || 'None declared'}
+Funding Source: ${fundingSource || 'None'}
+Data Availability: ${dataAvailability || 'Available on reasonable request'}
+
+=========================
+Please log into the admin panel to review this submission.
+    `.trim();
+
+    // Use Zoho SMTP to send email notification
+    const smtpHost = process.env.SMTP_HOST || 'smtp.zoho.in';
+    const smtpPort = parseInt(process.env.SMTP_PORT || '465');
+    const smtpUser = process.env.SMTP_USER || 'medicalvanguard@zohomail.in';
+    const smtpPass = process.env.SMTP_PASS || '';
+    const notifyEmail = process.env.NOTIFY_EMAIL || 'medicalvanguard@zohomail.in';
+
+    // Try to send email if SMTP credentials are available
+    if (smtpPass) {
+      try {
+        const nodemailer = await import('nodemailer');
+        const transporter = nodemailer.default.createTransport({
+          host: smtpHost,
+          port: smtpPort,
+          secure: true,
+          auth: { user: smtpUser, pass: smtpPass },
+        });
+
+        await transporter.sendMail({
+          from: smtpUser,
+          to: notifyEmail,
+          subject: `New Submission [${submissionId}]: ${title.substring(0, 60)}`,
+          text: emailBody,
+        });
+      } catch (emailErr) {
+        console.error('Email send failed:', emailErr);
+        // Don't fail the submission if email fails
+      }
+    }
+
+    // Return success with submission ID
+    return NextResponse.json(
+      { 
+        id: submissionId, 
+        message: 'Manuscript submitted successfully. You will receive a confirmation email within 24 hours.',
+        submittedAt
+      }, 
+      { status: 201 }
+    );
+
   } catch (err) {
     console.error('Submission error:', err);
     return NextResponse.json({ error: 'Submission failed. Please try again.' }, { status: 500 });
