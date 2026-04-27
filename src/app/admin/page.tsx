@@ -350,7 +350,7 @@ export default function AdminDashboard() {
               <li>If in-scope, paste the same details into Reviewer Matcher → reviewers are emailed</li>
               <li>As the review progresses, use Status Updates to keep the author informed in one click</li>
             </ol>
-            <p style={{ margin: '10px 0 0' }}>Add your OpenAI API key in Vercel env vars as <code>OPENAI_API_KEY</code> to enable full AI screening.</p>
+            <p style={{ margin: '10px 0 0' }}>Add your OpenAI API key in Vercel env vars as <code>GROQ_API_KEY</code> to enable full AI screening.</p>
           </div>
         </div>
 
