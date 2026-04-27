@@ -80,7 +80,7 @@ export default function AdminDashboard() {
       <header className="bg-blue-900 text-white px-6 py-4 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold">Editorial Management System</h1>
-          <p className="text-blue-200 text-sm">Global Medical Journal</p>
+          <p className="text-blue-200 text-sm">Medical Vanguard</p>
         </div>
         <button onClick={logout} className="bg-blue-800 hover:bg-blue-700 px-4 py-2 rounded text-sm font-medium">
           Logout

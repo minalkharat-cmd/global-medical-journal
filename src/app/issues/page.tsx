@@ -4,7 +4,7 @@ export default function IssuesPage() {
       <div className="bg-blue-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl font-bold mb-4">Journal Issues</h1>
-          <p className="text-xl text-blue-200">All volumes and issues of the Global Medical Journal</p>
+          <p className="text-xl text-blue-200">All volumes and issues of the Medical Vanguard</p>
         </div>
       </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

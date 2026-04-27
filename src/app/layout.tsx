@@ -7,7 +7,7 @@ import Footer from '@/components/Footer'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Global Medical Journal | Advancing Medical Science',
+  title: 'Medical Vanguard | Advancing Medical Science',
   description: 'A peer-reviewed open-access medical journal publishing high-quality research in clinical medicine, biomedical sciences, and public health.',
 }
 

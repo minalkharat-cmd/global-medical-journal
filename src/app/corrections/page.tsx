@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-export const metadata = { title: 'Corrections & Retractions | Global Medical Journal' };
+export const metadata = { title: 'Corrections & Retractions | Medical Vanguard' };
 
 export default function CorrectionsPage() {
   return (
@@ -14,7 +14,7 @@ export default function CorrectionsPage() {
       <div className="max-w-4xl mx-auto px-4 py-12 space-y-8 text-gray-800">
         <section>
           <h2 className="text-2xl font-bold text-gray-900 mb-3">Our Commitment to the Scientific Record</h2>
-          <p className="leading-relaxed">Global Medical Journal is committed to maintaining the integrity of the scientific record. We follow the Committee on Publication Ethics (COPE) guidelines for handling errors and concerns in published work.</p>
+          <p className="leading-relaxed">Medical Vanguard is committed to maintaining the integrity of the scientific record. We follow the Committee on Publication Ethics (COPE) guidelines for handling errors and concerns in published work.</p>
         </section>
 
         <section>
@@ -64,7 +64,7 @@ export default function CorrectionsPage() {
 
         <section>
           <h2 className="text-2xl font-bold text-gray-900 mb-3">COPE Compliance</h2>
-          <p className="leading-relaxed">Global Medical Journal is a member of the Committee on Publication Ethics (COPE) and follows the <a href="https://publicationethics.org" target="_blank" className="text-blue-700 underline">COPE Code of Conduct</a> for journal editors and publishers.</p>
+          <p className="leading-relaxed">Medical Vanguard is a member of the Committee on Publication Ethics (COPE) and follows the <a href="https://publicationethics.org" target="_blank" className="text-blue-700 underline">COPE Code of Conduct</a> for journal editors and publishers.</p>
         </section>
 
         <div className="flex flex-wrap gap-4 pt-4 border-t">

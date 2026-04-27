@@ -20,7 +20,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 text-xl font-bold">
           <BookOpen className="w-7 h-7 text-blue-300" />
-          <span>Global Medical Journal</span>
+          <span>Medical Vanguard</span>
         </Link>
         <button className="md:hidden" onClick={() => setOpen(!open)}>
           {open ? <X /> : <Menu />}

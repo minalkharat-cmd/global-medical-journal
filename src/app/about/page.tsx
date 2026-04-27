@@ -4,7 +4,7 @@ export default function About() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-16">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-800 mb-4">About Global Medical Journal</h1>
+        <h1 className="text-4xl font-bold text-gray-800 mb-4">About Medical Vanguard</h1>
         <p className="text-xl text-gray-500">Dedicated to advancing medical knowledge worldwide</p>
       </div>
       <div className="grid md:grid-cols-2 gap-8 mb-12">
@@ -23,9 +23,9 @@ export default function About() {
         <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2"><Award className="w-7 h-7 text-yellow-500" /> Journal Information</h2>
         <div className="grid md:grid-cols-2 gap-4">
           {[
-            ['Full Title', 'Global Medical Journal'],
+            ['Full Title', 'Medical Vanguard'],
             ['ISSN (Online)', 'XXXX-XXXX'],
-            ['Publisher', 'GMJ Publishing House'],
+            ['Publisher', 'MV Publishing House'],
             ['Frequency', 'Quarterly (4 issues/year)'],
             ['Access Type', 'Open Access'],
             ['Review Process', 'Double-blind peer review'],
@@ -43,7 +43,7 @@ export default function About() {
       </div>
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2"><BookOpen className="w-7 h-7 text-blue-500" /> Scope & Focus Areas</h2>
-        <p className="text-gray-600 mb-4">GMJ publishes original research, review articles, case reports, systematic reviews, and meta-analyses across all areas of medicine including:</p>
+        <p className="text-gray-600 mb-4">MV publishes original research, review articles, case reports, systematic reviews, and meta-analyses across all areas of medicine including:</p>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {['Clinical Medicine','Surgery & Anesthesia','Internal Medicine','Cardiology & Vascular','Oncology','Neurology & Neuroscience','Infectious Disease','Public Health & Epidemiology','Pharmacology','Pediatrics','Obstetrics & Gynecology','Psychiatry & Mental Health'].map(s => (
             <div key={s} className="bg-blue-50 text-blue-800 px-3 py-2 rounded-lg text-sm font-medium">{s}</div>

@@ -2,7 +2,7 @@ export default function Ethics() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
       <h1 className="text-3xl font-bold text-gray-800 mb-2">Ethics Policy</h1>
-      <p className="text-gray-500 mb-10">Global Medical Journal adheres to COPE guidelines and the highest standards of publication ethics</p>
+      <p className="text-gray-500 mb-10">Medical Vanguard adheres to COPE guidelines and the highest standards of publication ethics</p>
       <div className="space-y-6">
         {[
           { title: 'Research Ethics', content: 'All research involving human subjects must have received approval from an appropriate institutional ethics committee or review board. Authors must confirm that informed consent was obtained from all participants. Studies on animals must follow the ARRIVE guidelines and comply with institutional and national regulations.' },

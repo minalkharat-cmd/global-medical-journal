@@ -24,7 +24,7 @@ export default function Contact() {
       <p className="text-gray-500 mb-10">Get in touch with the editorial team</p>
       <div className="grid md:grid-cols-3 gap-8">
         <div className="space-y-6">
-          {[{icon:Mail,title:'Email',lines:['editor@globalmedjournal.org','submissions@globalmedjournal.org']},{icon:Phone,title:'Phone',lines:['+1 (617) 555-0123','Mon-Fri, 9AM-5PM EST']},{icon:MapPin,title:'Address',lines:['Global Medical Journal','123 Medical Avenue','Boston, MA 02115, USA']},{icon:Clock,title:'Office Hours',lines:['Monday-Friday: 9AM-5PM EST','Response time: 2 business days']}].map(({icon:Icon,title,lines}) => (
+          {[{icon:Mail,title:'Email',lines:['editor@globalmedjournal.org','submissions@globalmedjournal.org']},{icon:Phone,title:'Phone',lines:['+1 (617) 555-0123','Mon-Fri, 9AM-5PM EST']},{icon:MapPin,title:'Address',lines:['Medical Vanguard','123 Medical Avenue','Boston, MA 02115, USA']},{icon:Clock,title:'Office Hours',lines:['Monday-Friday: 9AM-5PM EST','Response time: 2 business days']}].map(({icon:Icon,title,lines}) => (
             <div key={title} className="flex gap-4">
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Icon className="w-5 h-5 text-blue-600" />

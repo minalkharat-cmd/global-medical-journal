@@ -6,7 +6,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-white font-bold text-lg mb-4">Global Medical Journal</h3>
+            <h3 className="text-white font-bold text-lg mb-4">Medical Vanguard</h3>
             <p className="text-sm text-gray-400 leading-relaxed">
               An open-access, peer-reviewed journal dedicated to advancing medical science and improving global health outcomes.
             </p>
@@ -50,7 +50,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="border-t border-gray-800 mt-10 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500">
-          <p>&copy; {new Date().getFullYear()} Global Medical Journal. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Medical Vanguard. All rights reserved.</p>
           <p>Open Access | CC BY 4.0 International License</p>
           <div className="flex gap-4">
             <Link href="/ethics" className="hover:text-gray-300">Privacy Policy</Link>

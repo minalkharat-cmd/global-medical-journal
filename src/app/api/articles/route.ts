@@ -64,7 +64,7 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ id: `GMJ-${article.id.slice(-8).toUpperCase()}`, articleId: article.id }, { status: 201 });
+    return NextResponse.json({ id: `MV-${article.id.slice(-8).toUpperCase()}`, articleId: article.id }, { status: 201 });
   } catch (err) {
     console.error('Submission error:', err);
     return NextResponse.json({ error: 'Submission failed. Please try again.' }, { status: 500 });

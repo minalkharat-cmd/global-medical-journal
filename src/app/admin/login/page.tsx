@@ -30,7 +30,7 @@ export default function AdminLogin() {
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Admin Access</h1>
-          <p className="text-gray-600 mt-2">Global Medical Journal Editorial System</p>
+          <p className="text-gray-600 mt-2">Medical Vanguard Editorial System</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

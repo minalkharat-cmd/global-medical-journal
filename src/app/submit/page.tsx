@@ -40,7 +40,7 @@ export default function SubmitPage() {
       const res = await fetch('/api/articles', { method: 'POST', body: fd });
       const data = await res.json();
       if (res.ok) {
-        setSubmissionId(data.id || 'GMJ-'+Date.now());
+        setSubmissionId(data.id || 'MV-'+Date.now());
         setSubmitted(true);
       } else {
         setError(data.error || 'Submission failed. Please try again.');
