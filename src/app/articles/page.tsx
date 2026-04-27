@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Articles | Medical Vanguard",
+  title: "Articles",
   description: "Browse published articles in Medical Vanguard — a peer-reviewed, open-access medical journal.",
 };
 
