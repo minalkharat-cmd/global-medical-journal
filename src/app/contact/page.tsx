@@ -17,7 +17,7 @@ export default function Contact() {
                   <div className='text-2xl'>Email</div>
                   <div>
                     <h3 className='font-semibold text-gray-800'>Editorial Office</h3>
-                    <a href='mailto:minalkharat@gmail.com' className='text-blue-700 hover:underline'>minalkharat@gmail.com</a>
+                    <a href='mailto:medicalvanguard@zohomail.in' className='text-blue-700 hover:underline'>medicalvanguard@zohomail.in</a>
                     <p className='text-gray-500 text-sm'>For manuscript submissions, editorial queries, and peer review requests</p>
                   </div>
                 </div>

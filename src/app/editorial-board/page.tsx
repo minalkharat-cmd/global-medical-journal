@@ -34,7 +34,7 @@ export default function EditorialBoard() {
               <li>Help shape the scientific direction of the journal</li>
               <li>Be listed as a board member on our website and publications</li>
             </ul>
-            <a href='mailto:minalkharat@gmail.com?subject=Editorial Board Application - Medical Vanguard' className='bg-amber-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-amber-700 transition inline-block'>Apply to Join the Board</a>
+            <a href='mailto:medicalvanguard@zohomail.in?subject=Editorial Board Application - Medical Vanguard' className='bg-amber-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-amber-700 transition inline-block'>Apply to Join the Board</a>
           </div>
         </section>
         <section>
@@ -42,7 +42,7 @@ export default function EditorialBoard() {
           <div className='bg-gray-50 rounded-xl p-6 border border-gray-200'>
             <p className='text-gray-600 mb-4'>We maintain a pool of expert reviewers across all medical specialties. If you are an active researcher or clinician and would like to contribute to the peer review process, we welcome your application.</p>
             <p className='text-gray-600 text-sm mb-4'><strong>Minimum requirements:</strong> PhD, MD, or equivalent doctoral qualification; active research output in the relevant field; no significant conflicts of interest.</p>
-            <a href='mailto:minalkharat@gmail.com?subject=Peer Reviewer Application - Medical Vanguard' className='text-blue-700 font-semibold hover:underline'>Contact us to register as a reviewer</a>
+            <a href='mailto:medicalvanguard@zohomail.in?subject=Peer Reviewer Application - Medical Vanguard' className='text-blue-700 font-semibold hover:underline'>Contact us to register as a reviewer</a>
           </div>
         </section>
       </div>

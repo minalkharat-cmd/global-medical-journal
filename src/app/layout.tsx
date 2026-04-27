@@ -93,7 +93,7 @@ export default function RootLayout({
               <div>
                 <h4 style={{ color: "white", fontWeight: 600, marginBottom: "12px" }}>Contact</h4>
                 <div style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.65)", lineHeight: 2 }}>
-                  <div>minalkharat@gmail.com</div>
+                  <div>medicalvanguard@zohomail.in</div>
                   <div>+91 8103713606</div>
                   <div>566 College Road</div>
                   <div>Mahasamund, CG 493445</div>
