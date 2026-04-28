@@ -46,12 +46,21 @@ export default function AdminDashboard() {
   const [screenResult, setScreenResult] = useState<{success?:boolean;decision?:string;summary?:string;error?:string}|null>(null);
   const [screenLoading, setScreenLoading] = useState(false);
 
-  const handleLogin = () => {
-    if (password === ADMIN_KEY) {
-      setAuthed(true);
-      setAuthError('');
-    } else {
-      setAuthError('Incorrect password. Please try again.');
+  const handleLogin = async () => {
+    try {
+      const res = await fetch('/api/admin-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      if (res.ok) {
+        setAuthed(true);
+        setAuthError('');
+      } else {
+        setAuthError('Incorrect password. Please try again.');
+      }
+    } catch {
+      setAuthError('Network error. Please try again.');
     }
   };
 
@@ -63,7 +72,7 @@ export default function AdminDashboard() {
     setSendingStatus(true);
     setStatusResult(null);
     try {
-      const res = await fetch('/api/status', {
+      const res = await fetch('/api/update-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY },
         body: JSON.stringify({ submissionId: subId, authorEmail, authorName, title, status: selectedStatus, customNote })
