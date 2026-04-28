@@ -1,3 +1,5 @@
+export const maxDuration = 30;
+
 import { NextResponse } from 'next/server';
 
 
@@ -53,6 +55,9 @@ export async function POST(req: Request) {
           host: process.env.SMTP_HOST || 'smtp.zoho.in',
           port: parseInt(process.env.SMTP_PORT || '465'),
           secure: true,
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 10000,
           auth: { user: 'medicalvanguard@zohomail.in', pass: smtpPass },
         });
         await transporter.sendMail({

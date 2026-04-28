@@ -1,3 +1,5 @@
+export const maxDuration = 60;
+
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 
@@ -74,7 +76,10 @@ Respond with a JSON object only (no markdown), with these exact fields:
 }`;
 
   try {
+    const controller = new AbortController();
+    const groqTimeout = setTimeout(() => controller.abort(), 25000);
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      signal: controller.signal,
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,

@@ -1,3 +1,5 @@
+export const maxDuration = 30;
+
 import { NextRequest, NextResponse } from "next/server";
 import { Pool } from "pg";
 import nodemailer from "nodemailer";
@@ -128,6 +130,9 @@ export async function POST(request: NextRequest) {
       host: "smtp.zoho.in",
       port: 465,
       secure: true,
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
       auth: {
         user: "medicalvanguard@zohomail.in",
         pass: process.env.ZOHO_PASS || "6rdHWzTG05fp",
