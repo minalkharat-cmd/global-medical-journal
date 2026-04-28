@@ -13,6 +13,7 @@ export async function GET() {
     `;
 
     return NextResponse.json({
+      success: true,
       articles: articles.map(a => ({
         id: a.id,
         submissionId: a.submission_id,

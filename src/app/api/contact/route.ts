@@ -1,10 +1,36 @@
 import { NextResponse } from 'next/server';
 
+
+// Simple in-memory rate limiter (per serverless instance)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 5; // max 5 requests per minute
+const RATE_WINDOW = 60 * 1000; // 1 minute
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW });
+    return true; // allowed
+  }
+  if (entry.count >= RATE_LIMIT) {
+    return false; // rate limited
+  }
+  entry.count++;
+  return true;
+}
+
 export async function POST(req: Request) {
   try {
     let body: Record<string, unknown> = {};
   try {
     body = await req.json();
+    // Rate limiting
+    const forwarded = req.headers.get("x-forwarded-for");
+    const ip = forwarded ? forwarded.split(",")[0].trim() : "unknown";
+    if (!checkRateLimit(ip)) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
   } catch (_) {
     return NextResponse.json({ error: "Invalid or empty request body" }, { status: 400 });
   }
