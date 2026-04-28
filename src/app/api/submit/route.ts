@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
   }
 
-  const submissionId = "MV-" + new Date().toISOString().slice(2, 7).replace("-", "") + "-" + crypto.randomBytes(3).toString("hex").toUpperCase();
+  const submissionId = "MV-" + new Date().toISOString().slice(0, 7).replace("-", "") + "-" + crypto.randomBytes(3).toString("hex").toUpperCase();
 
   let dbInserted = false;
   let emailSent = false;
