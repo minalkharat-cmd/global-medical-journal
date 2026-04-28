@@ -73,7 +73,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Submission ID is required" }, { status: 400 });
   }
 
-  const trimmedId = id.trim();
+  const safeId = (typeof id === "string") ? id.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "") : String(id || "");
+    const trimmedId = safeId.trim();
   if (trimmedId.length > 100) {
     return NextResponse.json({ error: "Invalid submission ID" }, { status: 400 });
   }

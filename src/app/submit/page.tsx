@@ -38,7 +38,7 @@ export default function SubmitPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        setSubmissionId(data.id || 'MV-'+Date.now());
+        setSubmissionId(data.submissionId || data.id || 'MV-'+Date.now());
         setSubmitted(true);
       } else {
         setError(data.error || 'Submission failed. Please try again.');

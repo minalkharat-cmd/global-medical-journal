@@ -3,7 +3,7 @@ import { Pool } from "pg";
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("Authorization");
-  const token = authHeader ? authHeader.replace("Bearer ", "") : "";
+  const token = authHeader && authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
   if (token !== "mv-admin-2025") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
