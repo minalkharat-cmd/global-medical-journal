@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       submissionId,
-      matchedReviewers: matches.map(m => ({
+      reviewers: matches.map(m => ({
         name: m.reviewer.name,
         institution: m.reviewer.institution,
         specialties: m.reviewer.specialties,
