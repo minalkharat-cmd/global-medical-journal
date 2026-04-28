@@ -46,7 +46,6 @@ export async function POST(request: NextRequest) {
 
   const client = await pool.connect();
   try {
-    // Check if table has correct schema; if not, recreate it
     let needsRecreate = false;
     try {
       await client.query("SELECT email FROM submissions LIMIT 0");
@@ -58,28 +57,26 @@ export async function POST(request: NextRequest) {
       await client.query("DROP TABLE IF EXISTS submissions CASCADE");
     }
 
-    await client.query(\`
-      CREATE TABLE IF NOT EXISTS submissions (
-        id SERIAL PRIMARY KEY,
-        submission_id VARCHAR(50) UNIQUE NOT NULL,
-        title TEXT NOT NULL,
-        abstract TEXT,
-        authors TEXT NOT NULL,
-        email VARCHAR(255) NOT NULL,
-        institution TEXT,
-        country TEXT,
-        manuscript_type VARCHAR(100),
-        specialty VARCHAR(100),
-        keywords TEXT,
-        cover_letter TEXT,
-        declaration TEXT,
-        status VARCHAR(50) DEFAULT 'pending',
-        submitted_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      )
-    \`);
+    const createSQL = "CREATE TABLE IF NOT EXISTS submissions (" +
+      "id SERIAL PRIMARY KEY," +
+      "submission_id VARCHAR(50) UNIQUE NOT NULL," +
+      "title TEXT NOT NULL," +
+      "abstract TEXT," +
+      "authors TEXT NOT NULL," +
+      "email VARCHAR(255) NOT NULL," +
+      "institution TEXT," +
+      "country TEXT," +
+      "manuscript_type VARCHAR(100)," +
+      "specialty VARCHAR(100)," +
+      "keywords TEXT," +
+      "cover_letter TEXT," +
+      "declaration TEXT," +
+      "status VARCHAR(50) DEFAULT 'pending'," +
+      "submitted_at TIMESTAMP DEFAULT NOW()," +
+      "updated_at TIMESTAMP DEFAULT NOW()" +
+    ")";
+    await client.query(createSQL);
 
-    // Add any missing columns defensively
     const alterStatements = [
       "ALTER TABLE submissions ADD COLUMN IF NOT EXISTS authors TEXT",
       "ALTER TABLE submissions ADD COLUMN IF NOT EXISTS email VARCHAR(255)",
@@ -96,32 +93,27 @@ export async function POST(request: NextRequest) {
     ];
 
     for (const stmt of alterStatements) {
-      try {
-        await client.query(stmt);
-      } catch (_) {
-        // Column already exists, continue
-      }
+      try { await client.query(stmt); } catch (_) {}
     }
 
-    await client.query(
-      \`INSERT INTO submissions
-        (submission_id, title, abstract, authors, email, institution, country, manuscript_type, specialty, keywords, cover_letter, declaration)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)\`,
-      [
-        submissionId,
-        title,
-        abstract || "",
-        authorName,
-        authorEmail,
-        institution || "",
-        country || "",
-        manuscriptType || "",
-        specialty || "",
-        keywords || "",
-        coverLetter || "",
-        declaration || "",
-      ]
-    );
+    const insertSQL = "INSERT INTO submissions " +
+      "(submission_id, title, abstract, authors, email, institution, country, manuscript_type, specialty, keywords, cover_letter, declaration) " +
+      "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)";
+
+    await client.query(insertSQL, [
+      submissionId,
+      title,
+      abstract || "",
+      authorName,
+      authorEmail,
+      institution || "",
+      country || "",
+      manuscriptType || "",
+      specialty || "",
+      keywords || "",
+      coverLetter || "",
+      declaration || "",
+    ]);
 
     dbInserted = true;
   } catch (err) {
@@ -131,7 +123,6 @@ export async function POST(request: NextRequest) {
     await pool.end();
   }
 
-  // Send confirmation email
   try {
     const transporter = nodemailer.createTransport({
       host: "smtp.zoho.in",
@@ -147,7 +138,7 @@ export async function POST(request: NextRequest) {
       from: "Medical Vanguard <medicalvanguard@zohomail.in>",
       to: authorEmail,
       subject: "Submission Received - " + submissionId,
-      html: "<p>Dear " + authorName + ",</p><p>Thank you for submitting your manuscript <strong>" + title + "</strong> to Medical Vanguard.</p><p>Your submission ID is: <strong>" + submissionId + "</strong></p><p>You can track your submission status at: <a href=\"https://medical-vanguard.vercel.app/track?id=" + submissionId + "\">Track Submission</a></p><p>Best regards,<br>Editorial Team<br>Medical Vanguard</p>",
+      html: "<p>Dear " + authorName + ",</p><p>Your submission ID: <strong>" + submissionId + "</strong></p>",
     });
 
     emailSent = true;
