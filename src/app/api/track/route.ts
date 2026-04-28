@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid submission ID" }, { status: 400 });
   }
 
-  const pool = new pg.Pool({
+  const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false },
   });
