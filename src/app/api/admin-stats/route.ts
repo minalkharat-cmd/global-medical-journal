@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { Pool } from "pg";
 
 export async function GET(request: NextRequest) {
+  const authHeader = request.headers.get("Authorization");
+  const token = authHeader ? authHeader.replace("Bearer ", "") : "";
+  if (token !== "mv-admin-2025") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false },
