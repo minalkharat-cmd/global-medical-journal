@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { submissionId, title, specialty, abstract } = body;
 
-    if (!submissionId || !title || !specialty) {
+    if (!title || !specialty) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
