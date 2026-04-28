@@ -1,51 +1,34 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
-
-function getRateLimitKey(req: NextRequest): string {
-  return req.headers.get('x-forwarded-for') ?? 'unknown';
+export async function GET() {
+  return NextResponse.json({ error: "Method Not Allowed" }, { status: 405 });
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
+  let body: Record<string, string> = {};
   try {
-    const ip = getRateLimitKey(req);
-    const now = Date.now();
-    const windowMs = 15 * 60 * 1000;
-    const maxAttempts = 5;
-
-    const current = rateLimitMap.get(ip);
-    if (current) {
-      if (now < current.resetTime) {
-        if (current.count >= maxAttempts) {
-          return NextResponse.json(
-            { error: 'Too many attempts. Try again in 15 minutes.' },
-            { status: 429 }
-          );
-        }
-        rateLimitMap.set(ip, { count: current.count + 1, resetTime: current.resetTime });
-      } else {
-        rateLimitMap.set(ip, { count: 1, resetTime: now + windowMs });
-      }
-    } else {
-      rateLimitMap.set(ip, { count: 1, resetTime: now + windowMs });
+    const text = await request.text();
+    if (!text || text.trim() === "") {
+      return NextResponse.json({ error: "Password is required" }, { status: 400 });
     }
-
-      let body: Record<string, unknown> = {};
-  try {
-    body = await request.json();
+    body = JSON.parse(text);
   } catch (_) {
-    return NextResponse.json({ error: "Invalid or empty request body" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
-    const { password } = body as { password: string };
-    const adminPassword = process.env.ADMIN_PASSWORD || 'mv-admin-2025';
 
-    if (!password || password !== adminPassword) {
-      return NextResponse.json({ error: 'Incorrect password' }, { status: 401 });
-    }
-
-    rateLimitMap.delete(ip);
-    return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+  const { password } = body;
+  if (!password) {
+    return NextResponse.json({ error: "Password is required" }, { status: 400 });
   }
+
+  const adminPassword = process.env.ADMIN_PASSWORD || "mv-admin-2025";
+  if (password !== adminPassword) {
+    return NextResponse.json({ error: "Invalid password" }, { status: 401 });
+  }
+
+  return NextResponse.json({
+    success: true,
+    token: adminPassword,
+    message: "Authentication successful",
+  });
 }
