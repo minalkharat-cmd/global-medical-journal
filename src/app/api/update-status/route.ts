@@ -15,7 +15,12 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    let body: Record<string, unknown> = {};
+  try {
+    body = await request.json();
+  } catch (_) {
+    return NextResponse.json({ error: "Invalid or empty request body" }, { status: 400 });
+  }
     const { submissionId, authorEmail, authorName, title, status, editorNote } = body;
 
     if (!submissionId || !status) {

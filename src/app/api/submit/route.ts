@@ -20,7 +20,12 @@ function generateSubmissionId(): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    let body: Record<string, unknown> = {};
+    try {
+      body = await request.json();
+    } catch (_) {
+      return NextResponse.json({ error: "Invalid or empty request body" }, { status: 400 });
+    }
 
     const {
       authorName,
@@ -94,6 +99,14 @@ export async function POST(request: NextRequest) {
             assigned_reviewer TEXT
           )
         `);
+
+        // Rename legacy 'author' column to 'authors' if needed
+        try {
+          await client.query("ALTER TABLE submissions RENAME COLUMN author TO authors");
+        } catch (_) {}
+        try {
+          await client.query("ALTER TABLE submissions RENAME COLUMN email TO author_email_legacy");
+        } catch (_) {}
 
         // Add any missing columns (safe migration)
         const alterStatements = [

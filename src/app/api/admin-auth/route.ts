@@ -30,7 +30,12 @@ export async function POST(req: NextRequest) {
       rateLimitMap.set(ip, { count: 1, resetTime: now + windowMs });
     }
 
-    const body = await req.json();
+      let body: Record<string, unknown> = {};
+  try {
+    body = await request.json();
+  } catch (_) {
+    return NextResponse.json({ error: "Invalid or empty request body" }, { status: 400 });
+  }
     const { password } = body as { password: string };
     const adminPassword = process.env.ADMIN_PASSWORD || 'mv-admin-2025';
 

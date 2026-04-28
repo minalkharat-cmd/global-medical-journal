@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    let body: Record<string, unknown> = {};
+  try {
+    body = await req.json();
+  } catch (_) {
+    return NextResponse.json({ error: "Invalid or empty request body" }, { status: 400 });
+  }
     const { name, email, subject, message } = body;
     
     if (!name || !email || !message) {
