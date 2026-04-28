@@ -1,6 +1,5 @@
-import { Pool } from 'pg';
+import { Pool, PoolClient } from 'pg';
 
-// Create connection pool using DATABASE_URL from Neon
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
@@ -9,20 +8,20 @@ const pool = new Pool({
   connectionTimeoutMillis: 10000,
 });
 
-// Tagged template literal helper that mimics neon's API
+// Correct tagged template literal implementation
 export async function sql(strings: TemplateStringsArray, ...values: unknown[]): Promise<Record<string, unknown>[]> {
-  let text = '';
+  // Build query: interleave strings and $N placeholders
+  let text = strings[0];
   const params: unknown[] = [];
-  strings.forEach((str, i) => {
-    text += str;
-    if (i < values.length) {
-      params.push(values[i]);
-      text += `$${params.length}`;
-    }
-  });
+  
+  for (let i = 0; i < values.length; i++) {
+    params.push(values[i]);
+    text += `$${params.length}${strings[i + 1]}`;
+  }
+
   const client = await pool.connect();
   try {
-    const result = await client.query(text, params);
+    const result = await client.query(text.trim(), params);
     return result.rows as Record<string, unknown>[];
   } finally {
     client.release();
