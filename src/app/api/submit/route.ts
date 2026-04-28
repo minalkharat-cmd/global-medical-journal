@@ -110,6 +110,7 @@ export async function POST(request: NextRequest) {
 
         // Add any missing columns (safe migration)
         const alterStatements = [
+          "ALTER TABLE submissions ADD COLUMN IF NOT EXISTS authors TEXT",
           "ALTER TABLE submissions ADD COLUMN IF NOT EXISTS co_authors TEXT",
           "ALTER TABLE submissions ADD COLUMN IF NOT EXISTS country VARCHAR(100)",
           "ALTER TABLE submissions ADD COLUMN IF NOT EXISTS phone VARCHAR(50)",
