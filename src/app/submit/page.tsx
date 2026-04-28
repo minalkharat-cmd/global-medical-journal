@@ -31,13 +31,11 @@ export default function SubmitPage() {
     setLoading(true);
     setError('');
     try {
-      const fd = new FormData();
-      Object.entries(form).forEach(([k,v]) => fd.append(k, String(v)));
-      if (manuscriptFile) fd.append('manuscript', manuscriptFile);
-      if (coverFile) fd.append('coverLetter', coverFile);
-      if (suppFiles) Array.from(suppFiles).forEach(f => fd.append('supplementary', f));
-
-      const res = await fetch('/api/articles', { method: 'POST', body: fd });
+      const res = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
       const data = await res.json();
       if (res.ok) {
         setSubmissionId(data.id || 'MV-'+Date.now());

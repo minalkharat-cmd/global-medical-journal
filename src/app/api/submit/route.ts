@@ -1,54 +1,97 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
-import { sql, initDb } from '@/lib/db';
-
-function generateSubmissionId() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const random = Math.random().toString(36).substr(2, 6).toUpperCase();
-  return `MV-${year}${month}-${random}`;
-}
+import { sql } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
-    const formData = await request.formData();
+    const body = await request.json();
 
-    const authorName = formData.get('authorName') as string;
-    const authorEmail = formData.get('authorEmail') as string;
-    const institution = (formData.get('institution') as string) || '';
-    const country = (formData.get('country') as string) || '';
-    const coAuthors = (formData.get('coAuthors') as string) || '';
-    const title = formData.get('title') as string;
-    const manuscriptType = (formData.get('manuscriptType') as string) || '';
-    const specialty = (formData.get('specialty') as string) || '';
-    const wordCount = parseInt((formData.get('wordCount') as string) || '0') || 0;
-    const abstract = (formData.get('abstract') as string) || '';
-    const keywords = (formData.get('keywords') as string) || '';
+    const title = (body.title || '').trim();
+    const manuscriptType = body.manuscriptType || '';
+    const specialty = body.specialty || '';
+    const wordCount = parseInt(body.wordCount || '0') || 0;
+    const abstract = (body.abstract || '').trim();
+    const keywords = body.keywords || '';
+    const authors = body.authorName || '';
+    const email = body.authorEmail || '';
+    const institution = body.institution || '';
+    const coAuthors = body.coAuthors || '';
+    const country = body.country || '';
+    const phone = body.phone || '';
+    const references = body.references || '';
+    const fundingSource = body.fundingSource || '';
+    const conflictOfInterest = body.conflictOfInterest || '';
+    const ethicsApproval = body.ethicsApproval || '';
+    const dataAvailability = body.dataAvailability || '';
+    const coverLetter = body.coverLetter || '';
 
-    if (!authorName || !authorEmail || !title) {
+    if (!title || !abstract || !authors || !email) {
       return NextResponse.json(
-        { error: 'Missing required fields: authorName, authorEmail, title' },
+        { error: 'Missing required fields: title, abstract, authorName, authorEmail' },
         { status: 400 }
       );
     }
 
-    const submissionId = generateSubmissionId();
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json({ error: 'Invalid email address' }, { status: 400 });
+    }
 
-    // Store in database
-    await initDb();
+    // Generate submission ID
+    const date = new Date();
+    const dateStr = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const submissionId = `MV-${dateStr}-${randomSuffix}`;
+
+    // Try to store in database
+    let dbInserted = false;
     try {
       await sql`
-        INSERT INTO submissions (
-          submission_id, author_name, author_email, institution, country,
-          co_authors, title, manuscript_type, specialty, word_count,
-          abstract, keywords, status
-        ) VALUES (
-          ${submissionId}, ${authorName}, ${authorEmail}, ${institution}, ${country},
-          ${coAuthors}, ${title}, ${manuscriptType}, ${specialty}, ${wordCount},
-          ${abstract}, ${keywords}, 'received'
+        CREATE TABLE IF NOT EXISTS submissions (
+          id SERIAL PRIMARY KEY,
+          submission_id VARCHAR(50) UNIQUE NOT NULL,
+          title TEXT NOT NULL,
+          abstract TEXT NOT NULL,
+          authors TEXT NOT NULL,
+          email VARCHAR(255) NOT NULL,
+          specialty VARCHAR(100),
+          manuscript_type VARCHAR(100),
+          keywords TEXT,
+          institution TEXT,
+          co_authors TEXT,
+          country VARCHAR(100),
+          phone VARCHAR(50),
+          word_count INTEGER,
+          references_text TEXT,
+          funding_source TEXT,
+          conflict_of_interest TEXT,
+          ethics_approval TEXT,
+          data_availability TEXT,
+          cover_letter TEXT,
+          status VARCHAR(50) DEFAULT 'received',
+          submitted_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          editor_note TEXT,
+          assigned_reviewer TEXT
         )
       `;
+
+      await sql`
+        INSERT INTO submissions (
+          submission_id, title, abstract, authors, email, specialty,
+          manuscript_type, keywords, institution, co_authors, country,
+          phone, word_count, references_text, funding_source,
+          conflict_of_interest, ethics_approval, data_availability, cover_letter
+        ) VALUES (
+          ${submissionId}, ${title}, ${abstract}, ${authors}, ${email},
+          ${specialty}, ${manuscriptType}, ${keywords}, ${institution},
+          ${coAuthors}, ${country}, ${phone}, ${wordCount}, ${references},
+          ${fundingSource}, ${conflictOfInterest}, ${ethicsApproval},
+          ${dataAvailability}, ${coverLetter}
+        )
+      `;
+      dbInserted = true;
     } catch (dbErr) {
       console.error('DB insert error (non-fatal):', dbErr);
     }
@@ -58,8 +101,8 @@ export async function POST(request: NextRequest) {
     if (process.env.SMTP_PASS) {
       try {
         const transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST || 'smtp.zoho.in',
-          port: parseInt(process.env.SMTP_PORT || '465'),
+          host: 'smtp.zoho.in',
+          port: 465,
           secure: true,
           auth: {
             user: process.env.SMTP_USER || 'medicalvanguard@zohomail.in',
@@ -67,59 +110,53 @@ export async function POST(request: NextRequest) {
           },
         });
 
+        // Confirmation to author
         await transporter.sendMail({
           from: `"Medical Vanguard" <${process.env.SMTP_USER || 'medicalvanguard@zohomail.in'}>`,
-          to: process.env.NOTIFY_EMAIL || 'medicalvanguard@zohomail.in',
-          subject: `[New Submission] ${submissionId}: ${title.substring(0, 60)}`,
+          to: email,
+          subject: `Manuscript Received: ${submissionId}`,
           html: `
-            <div style="font-family:Arial,sans-serif;max-width:700px">
-              <h2 style="color:#1e40af">New Manuscript Submission</h2>
-              <table style="width:100%;border-collapse:collapse">
-                <tr><td style="padding:8px;font-weight:bold;background:#f1f5f9">Submission ID</td><td style="padding:8px">${submissionId}</td></tr>
-                <tr><td style="padding:8px;font-weight:bold;background:#f1f5f9">Title</td><td style="padding:8px">${title}</td></tr>
-                <tr><td style="padding:8px;font-weight:bold;background:#f1f5f9">Author</td><td style="padding:8px">${authorName} &lt;${authorEmail}&gt;</td></tr>
-                <tr><td style="padding:8px;font-weight:bold;background:#f1f5f9">Institution</td><td style="padding:8px">${institution}</td></tr>
-                <tr><td style="padding:8px;font-weight:bold;background:#f1f5f9">Country</td><td style="padding:8px">${country}</td></tr>
-                <tr><td style="padding:8px;font-weight:bold;background:#f1f5f9">Type</td><td style="padding:8px">${manuscriptType}</td></tr>
-                <tr><td style="padding:8px;font-weight:bold;background:#f1f5f9">Specialty</td><td style="padding:8px">${specialty}</td></tr>
-                <tr><td style="padding:8px;font-weight:bold;background:#f1f5f9">Word Count</td><td style="padding:8px">${wordCount}</td></tr>
-              </table>
-              <h3>Abstract</h3>
-              <p style="background:#f9fafb;padding:12px;border-left:4px solid #3b82f6">${abstract}</p>
-            </div>
+            <h2>Thank you for your submission!</h2>
+            <p>Dear ${authors},</p>
+            <p>We have received your manuscript "<strong>${title}</strong>".</p>
+            <p>Your submission ID is: <strong>${submissionId}</strong></p>
+            <p>You can track your submission status at: <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://medical-vanguard.vercel.app'}/track">Track Submission</a></p>
+            <p>We will review your manuscript and get back to you within 4 weeks.</p>
+            <br>
+            <p>Best regards,<br>Editorial Team<br>Medical Vanguard</p>
           `,
         });
 
+        // Notification to editor
+        const editorEmail = process.env.SMTP_USER || 'medicalvanguard@zohomail.in';
         await transporter.sendMail({
-          from: `"Medical Vanguard" <${process.env.SMTP_USER || 'medicalvanguard@zohomail.in'}>`,
-          to: authorEmail,
-          subject: `Submission Received \u2014 ${submissionId}`,
+          from: `"Medical Vanguard System" <${editorEmail}>`,
+          to: editorEmail,
+          subject: `New Submission: ${submissionId} - ${title}`,
           html: `
-            <div style="font-family:Arial,sans-serif;max-width:600px">
-              <h2 style="color:#1e40af">Thank You for Your Submission</h2>
-              <p>Dear ${authorName},</p>
-              <p>We have received your manuscript <strong>\u201c${title}\u201d</strong>.</p>
-              <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:16px;border-radius:8px;margin:20px 0">
-                <p style="margin:0;font-size:18px">Your Submission ID: <strong style="color:#15803d">${submissionId}</strong></p>
-              </div>
-              <p>Track your submission at <a href="https://medical-vanguard.vercel.app/track">medical-vanguard.vercel.app/track</a></p>
-              <p>Our editorial team will review your manuscript and contact you within 2-3 weeks.</p>
-              <p>Best regards,<br>Editorial Team, Medical Vanguard</p>
-            </div>
+            <h2>New Manuscript Submission</h2>
+            <p><strong>ID:</strong> ${submissionId}</p>
+            <p><strong>Title:</strong> ${title}</p>
+            <p><strong>Author:</strong> ${authors} (${email})</p>
+            <p><strong>Specialty:</strong> ${specialty}</p>
+            <p><strong>Type:</strong> ${manuscriptType}</p>
+            <p><strong>Word Count:</strong> ${wordCount}</p>
+            <p><strong>Institution:</strong> ${institution}</p>
           `,
         });
 
         emailSent = true;
       } catch (emailErr) {
-        console.error('Email error (non-fatal):', emailErr);
+        console.error('Email send error:', emailErr);
       }
     }
 
     return NextResponse.json({
       success: true,
       submissionId,
-      message: 'Submission received successfully',
+      message: 'Manuscript submitted successfully',
       emailSent,
+      dbInserted,
     });
 
   } catch (err) {
