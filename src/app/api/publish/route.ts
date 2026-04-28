@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sql, initDb } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
+  // Auth check - must have valid admin token
+  const authHeader = request.headers.get("authorization") || "";
+  const token = authHeader.replace("Bearer ", "").trim();
+  const adminPassword = process.env.ADMIN_PASSWORD || "mv-admin-2025";
+  if (!token || token !== adminPassword) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const { submissionId, doi, volume, issue, pageStart, pageEnd } = body;
