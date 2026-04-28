@@ -207,7 +207,7 @@ export default function SubmitPage() {
 
               <div className="flex justify-between">
                 <button onClick={()=>setStep(1)} className="text-gray-600 hover:text-gray-900 px-4 py-2 border rounded-lg">← Back</button>
-                <button onClick={()=>{if(form.title&&form.manuscriptType&&form.specialty&&form.abstract&&manuscriptFile)setStep(3);else setError('Please fill all required fields and upload manuscript file');}}
+                <button onClick={()=>{if(form.title&&form.manuscriptType&&form.specialty&&form.abstract)setStep(3);else setError('Please fill all required fields');}}
                   className="bg-blue-900 text-white px-6 py-2 rounded-lg hover:bg-blue-800 font-medium">
                   Next: Declaration →
                 </button>
