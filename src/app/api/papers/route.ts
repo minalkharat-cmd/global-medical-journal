@@ -1,41 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql, initDb } from '@/lib/db';
+import pg from 'pg';
+const { Pool } = pg;
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const status = searchParams.get('status');
-
+  const url = new URL(request.url);
+  const status = url.searchParams.get('status') || '';
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+    max: 3,
+    connectionTimeoutMillis: 5000,
+  });
+  let client;
   try {
-    await initDb();
-
-    const rows = status
-      ? await sql`SELECT * FROM submissions WHERE status = ${status} ORDER BY created_at DESC`
-      : await sql`SELECT * FROM submissions ORDER BY created_at DESC`;
-
+    client = await pool.connect();
+    let queryText: string;
+    let queryParams: string[];
+    if (status) {
+      queryText = 'SELECT submission_id, title, authors, email, institution, manuscript_type, specialty, status, submitted_at, updated_at FROM submissions WHERE status = $1 ORDER BY submitted_at DESC';
+      queryParams = [status];
+    } else {
+      queryText = 'SELECT submission_id, title, authors, email, institution, manuscript_type, specialty, status, submitted_at, updated_at FROM submissions ORDER BY submitted_at DESC';
+      queryParams = [];
+    }
+    const result = await client.query(queryText, queryParams);
+    const rows = result.rows;
     return NextResponse.json({
-      papers: rows.map(r => ({
+      success: true,
+      papers: rows.map((r: Record<string, unknown>) => ({
         submissionId: r.submission_id,
-        authorName: r.author_name,
-        authorEmail: r.author_email,
-        institution: r.institution,
-        country: r.country,
         title: r.title,
+        authors: r.authors,
+        email: r.email,
+        institution: r.institution,
         manuscriptType: r.manuscript_type,
         specialty: r.specialty,
-        wordCount: r.word_count,
-        abstract: r.abstract,
-        keywords: r.keywords,
         status: r.status,
-        editorNote: r.editor_note,
-        aiDecision: r.ai_decision,
-        submittedAt: r.created_at,
+        submittedAt: r.submitted_at,
         updatedAt: r.updated_at,
       })),
       total: rows.length,
     });
-
   } catch (err) {
     console.error('Papers error:', err);
-    return NextResponse.json({ papers: [], total: 0, error: 'Database unavailable' });
+    return NextResponse.json({ success: false, papers: [], total: 0, error: 'Database unavailable' });
+  } finally {
+    if (client) client.release();
+    await pool.end();
   }
 }

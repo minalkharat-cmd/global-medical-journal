@@ -14,6 +14,12 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 export async function POST(request: NextRequest) {
+  const authHeader = request.headers.get('Authorization');
+  const token = authHeader ? authHeader.replace('Bearer ', '') : '';
+  if (token !== 'mv-admin-2025') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  
   try {
     let body: Record<string, unknown> = {};
   try {

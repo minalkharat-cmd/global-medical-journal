@@ -32,6 +32,6 @@ export async function GET() {
 
   } catch (err) {
     console.error('Articles error:', err);
-    return NextResponse.json({ articles: [], total: 0, message: 'No articles published yet' });
+    return NextResponse.json({ success: true, articles: [], total: 0, message: 'No articles published yet' });
   }
 }
