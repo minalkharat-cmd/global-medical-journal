@@ -11,6 +11,7 @@ interface Reviewer {
   institution: string;
   specialties: string[];
   orcid?: string;
+  available?: boolean;
 }
 
 const SPECIALTY_MAP: Record<string, string[]> = {
@@ -60,17 +61,15 @@ async function getReviewers(): Promise<Reviewer[]> {
   }
   // Fallback built-in reviewer list
   return [
-    { name: 'Dr. Priya Sharma', email: 'reviewer1@medicalemail.com', specialties: ['cardiology', 'internal medicine'], institution: 'AIIMS New Delhi', available: true },
-    { name: 'Dr. Rajesh Kumar', email: 'reviewer2@medicalemail.com', specialties: ['neurology', 'neuroscience'], institution: 'PGI Chandigarh', available: true },
-    { name: 'Dr. Ananya Patel', email: 'reviewer3@medicalemail.com', specialties: ['oncology', 'hematology'], institution: 'Tata Memorial Hospital', available: true },
-    { name: 'Dr. Vikram Singh', email: 'reviewer4@medicalemail.com', specialties: ['pulmonology', 'respiratory medicine'], institution: 'AIIMS Jodhpur', available: true },
-    { name: 'Dr. Meena Reddy', email: 'reviewer5@medicalemail.com', specialties: ['endocrinology', 'diabetes'], institution: 'Nizam's Institute', available: true },
-    { name: 'Dr. Arjun Gupta', email: 'reviewer6@medicalemail.com', specialties: ['gastroenterology', 'hepatology'], institution: 'SGPGI Lucknow', available: true },
-    { name: 'Dr. Sunita Bose', email: 'reviewer7@medicalemail.com', specialties: ['nephrology', 'transplant'], institution: 'CMC Vellore', available: true },
-    { name: 'Dr. Ravi Menon', email: 'reviewer8@medicalemail.com', specialties: ['general surgery', 'surgical oncology'], institution: 'JIPMER Puducherry', available: true },
+    { name: "Dr. Priya Sharma", email: "reviewer1@medicalemail.com", specialties: ["cardiology", "internal medicine"], institution: "AIIMS New Delhi", available: true },
+    { name: "Dr. Rajesh Kumar", email: "reviewer2@medicalemail.com", specialties: ["neurology", "neuroscience"], institution: "PGI Chandigarh", available: true },
+    { name: "Dr. Ananya Patel", email: "reviewer3@medicalemail.com", specialties: ["oncology", "hematology"], institution: "Tata Memorial Hospital", available: true },
+    { name: "Dr. Vikram Singh", email: "reviewer4@medicalemail.com", specialties: ["pulmonology", "respiratory medicine"], institution: "AIIMS Jodhpur", available: true },
+    { name: "Dr. Meena Reddy", email: "reviewer5@medicalemail.com", specialties: ["endocrinology", "diabetes"], institution: "Nizams Institute of Medical Sciences", available: true },
+    { name: "Dr. Arjun Gupta", email: "reviewer6@medicalemail.com", specialties: ["gastroenterology", "hepatology"], institution: "SGPGI Lucknow", available: true },
+    { name: "Dr. Sunita Bose", email: "reviewer7@medicalemail.com", specialties: ["nephrology", "transplant medicine"], institution: "CMC Vellore", available: true },
+    { name: "Dr. Ravi Menon", email: "reviewer8@medicalemail.com", specialties: ["general surgery", "surgical oncology"], institution: "JIPMER Puducherry", available: true },
   ];
-  // Return empty - no reviewers registered yet
-  return [];
 }
 
 async function sendReviewerInvitation(
