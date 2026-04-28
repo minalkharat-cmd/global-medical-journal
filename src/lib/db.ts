@@ -1,9 +1,35 @@
-import { neon } from '@neondatabase/serverless';
+import { Pool } from 'pg';
 
+// Create connection pool using DATABASE_URL from Neon
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+  max: 5,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+});
 
-export { sql };
+// Tagged template literal helper that mimics neon's API
+export async function sql(strings: TemplateStringsArray, ...values: unknown[]): Promise<Record<string, unknown>[]> {
+  let text = '';
+  const params: unknown[] = [];
+  strings.forEach((str, i) => {
+    text += str;
+    if (i < values.length) {
+      params.push(values[i]);
+      text += `$${params.length}`;
+    }
+  });
+  const client = await pool.connect();
+  try {
+    const result = await client.query(text, params);
+    return result.rows as Record<string, unknown>[];
+  } finally {
+    client.release();
+  }
+}
 
-export async function initDb() {
+export async function initDb(): Promise<boolean> {
   try {
     await sql`
       CREATE TABLE IF NOT EXISTS submissions (
@@ -27,7 +53,6 @@ export async function initDb() {
         updated_at TIMESTAMP DEFAULT NOW()
       )
     `;
-
     await sql`
       CREATE TABLE IF NOT EXISTS articles (
         id SERIAL PRIMARY KEY,
@@ -45,7 +70,6 @@ export async function initDb() {
         page_end INTEGER
       )
     `;
-
     return true;
   } catch (err) {
     console.error('DB init error:', err);
