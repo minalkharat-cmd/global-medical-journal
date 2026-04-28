@@ -1,129 +1,129 @@
-import { NextRequest, NextResponse } from "next/server";
-import nodemailer from "nodemailer";
+import { NextRequest, NextResponse } from 'next/server';
+import nodemailer from 'nodemailer';
+import { sql, initDb } from '@/lib/db';
 
-export const runtime = "nodejs";
-
-function generateSubmissionId(): string {
+function generateSubmissionId() {
   const now = new Date();
   const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const rand = Math.random().toString(36).substring(2, 8).toUpperCase();
-  return `MV-${year}${month}-${rand}`;
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const random = Math.random().toString(36).substr(2, 6).toUpperCase();
+  return `MV-${year}${month}-${random}`;
 }
 
-async function sendEmail(opts: {
-  to: string; subject: string; html: string;
-}) {
-  const smtpPass = process.env.SMTP_PASS;
-  if (!smtpPass) return false;
+export async function POST(request: NextRequest) {
   try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || "smtp.zoho.in",
-      port: parseInt(process.env.SMTP_PORT || "465"),
-      secure: true,
-      auth: { user: process.env.SMTP_USER || "medicalvanguard@zohomail.in", pass: smtpPass },
-    });
-    await transporter.sendMail({
-      from: '"Medical Vanguard" <medicalvanguard@zohomail.in>',
-      ...opts,
-    });
-    return true;
-  } catch (err) {
-    console.error("Email error:", err);
-    return false;
-  }
-}
+    const formData = await request.formData();
 
-export async function POST(req: NextRequest) {
-  try {
-    const formData = await req.formData();
+    const authorName = formData.get('authorName') as string;
+    const authorEmail = formData.get('authorEmail') as string;
+    const institution = (formData.get('institution') as string) || '';
+    const country = (formData.get('country') as string) || '';
+    const coAuthors = (formData.get('coAuthors') as string) || '';
+    const title = formData.get('title') as string;
+    const manuscriptType = (formData.get('manuscriptType') as string) || '';
+    const specialty = (formData.get('specialty') as string) || '';
+    const wordCount = parseInt((formData.get('wordCount') as string) || '0') || 0;
+    const abstract = (formData.get('abstract') as string) || '';
+    const keywords = (formData.get('keywords') as string) || '';
 
-    const name = formData.get("name") as string;
-    const email = formData.get("email") as string;
-    const institution = formData.get("institution") as string;
-    const country = formData.get("country") as string;
-    const coAuthors = formData.get("coAuthors") as string || "";
-    const title = formData.get("title") as string;
-    const manuscriptType = formData.get("manuscriptType") as string;
-    const specialty = formData.get("specialty") as string;
-    const wordCount = formData.get("wordCount") as string;
-    const abstract = formData.get("abstract") as string;
-    const keywords = formData.get("keywords") as string;
-
-    if (!name || !email || !institution || !title || !abstract || !manuscriptType) {
+    if (!authorName || !authorEmail || !title) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: 'Missing required fields: authorName, authorEmail, title' },
         { status: 400 }
       );
     }
 
     const submissionId = generateSubmissionId();
-    const submittedAt = new Date().toISOString();
 
-    // Email to editor with full submission details
-    const editorEmail = process.env.NOTIFY_EMAIL || "medicalvanguard@zohomail.in";
-    await sendEmail({
-      to: editorEmail,
-      subject: `[NEW SUBMISSION] ${submissionId} — ${title}`,
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:700px;margin:0 auto">
-          <h2 style="color:#1a3a6b">New Manuscript Submission</h2>
-          <p><strong>Submission ID:</strong> <code style="background:#f0f4ff;padding:2px 6px;border-radius:4px">${submissionId}</code></p>
-          <p><strong>Submitted:</strong> ${new Date(submittedAt).toLocaleString("en-IN",{timeZone:"Asia/Kolkata"})}</p>
-          <hr/>
-          <h3>Author Information</h3>
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Institution:</strong> ${institution}</p>
-          <p><strong>Country:</strong> ${country}</p>
-          ${coAuthors ? `<p><strong>Co-Authors:</strong> ${coAuthors}</p>` : ""}
-          <hr/>
-          <h3>Manuscript Details</h3>
-          <p><strong>Title:</strong> ${title}</p>
-          <p><strong>Type:</strong> ${manuscriptType}</p>
-          <p><strong>Specialty:</strong> ${specialty}</p>
-          <p><strong>Word Count:</strong> ${wordCount}</p>
-          <p><strong>Keywords:</strong> ${keywords}</p>
-          <h4>Abstract:</h4>
-          <div style="background:#f9f9f9;border-left:4px solid #1a3a6b;padding:12px;font-size:14px">${abstract}</div>
-          <hr/>
-          <p style="font-size:12px;color:#888">Use Submission ID <strong>${submissionId}</strong> in the Editor Dashboard to run AI screening and assign reviewers.</p>
-        </div>
-      `,
-    });
+    // Store in database
+    await initDb();
+    try {
+      await sql`
+        INSERT INTO submissions (
+          submission_id, author_name, author_email, institution, country,
+          co_authors, title, manuscript_type, specialty, word_count,
+          abstract, keywords, status
+        ) VALUES (
+          ${submissionId}, ${authorName}, ${authorEmail}, ${institution}, ${country},
+          ${coAuthors}, ${title}, ${manuscriptType}, ${specialty}, ${wordCount},
+          ${abstract}, ${keywords}, 'received'
+        )
+      `;
+    } catch (dbErr) {
+      console.error('DB insert error (non-fatal):', dbErr);
+    }
 
-    // Acknowledgement email to author
-    await sendEmail({
-      to: email,
-      subject: `Submission Received — ${submissionId} | Medical Vanguard`,
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
-          <h2 style="color:#1a3a6b">Submission Received</h2>
-          <p>Dear ${name},</p>
-          <p>Thank you for submitting your manuscript to <strong>Medical Vanguard</strong>. We have received your submission and it will undergo initial screening within 5–7 business days.</p>
-          <div style="background:#f0f4ff;border-radius:8px;padding:16px;margin:16px 0">
-            <p style="margin:4px 0"><strong>Submission ID:</strong> <code>${submissionId}</code></p>
-            <p style="margin:4px 0"><strong>Title:</strong> ${title}</p>
-            <p style="margin:4px 0"><strong>Type:</strong> ${manuscriptType}</p>
-            <p style="margin:4px 0"><strong>Specialty:</strong> ${specialty}</p>
-          </div>
-          <p>Please save your Submission ID — you can use it to track your manuscript status at <a href="https://medical-vanguard.vercel.app/track">medical-vanguard.vercel.app/track</a>.</p>
-          <p>If you have any questions, contact us at <a href="mailto:medicalvanguard@zohomail.in">medicalvanguard@zohomail.in</a>.</p>
-          <p>Best regards,<br/><strong>Editorial Office</strong><br/>Medical Vanguard</p>
-        </div>
-      `,
-    });
+    // Send emails if SMTP configured
+    let emailSent = false;
+    if (process.env.SMTP_PASS) {
+      try {
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST || 'smtp.zoho.in',
+          port: parseInt(process.env.SMTP_PORT || '465'),
+          secure: true,
+          auth: {
+            user: process.env.SMTP_USER || 'medicalvanguard@zohomail.in',
+            pass: process.env.SMTP_PASS,
+          },
+        });
+
+        await transporter.sendMail({
+          from: `"Medical Vanguard" <${process.env.SMTP_USER || 'medicalvanguard@zohomail.in'}>`,
+          to: process.env.NOTIFY_EMAIL || 'medicalvanguard@zohomail.in',
+          subject: `[New Submission] ${submissionId}: ${title.substring(0, 60)}`,
+          html: `
+            <div style="font-family:Arial,sans-serif;max-width:700px">
+              <h2 style="color:#1e40af">New Manuscript Submission</h2>
+              <table style="width:100%;border-collapse:collapse">
+                <tr><td style="padding:8px;font-weight:bold;background:#f1f5f9">Submission ID</td><td style="padding:8px">${submissionId}</td></tr>
+                <tr><td style="padding:8px;font-weight:bold;background:#f1f5f9">Title</td><td style="padding:8px">${title}</td></tr>
+                <tr><td style="padding:8px;font-weight:bold;background:#f1f5f9">Author</td><td style="padding:8px">${authorName} &lt;${authorEmail}&gt;</td></tr>
+                <tr><td style="padding:8px;font-weight:bold;background:#f1f5f9">Institution</td><td style="padding:8px">${institution}</td></tr>
+                <tr><td style="padding:8px;font-weight:bold;background:#f1f5f9">Country</td><td style="padding:8px">${country}</td></tr>
+                <tr><td style="padding:8px;font-weight:bold;background:#f1f5f9">Type</td><td style="padding:8px">${manuscriptType}</td></tr>
+                <tr><td style="padding:8px;font-weight:bold;background:#f1f5f9">Specialty</td><td style="padding:8px">${specialty}</td></tr>
+                <tr><td style="padding:8px;font-weight:bold;background:#f1f5f9">Word Count</td><td style="padding:8px">${wordCount}</td></tr>
+              </table>
+              <h3>Abstract</h3>
+              <p style="background:#f9fafb;padding:12px;border-left:4px solid #3b82f6">${abstract}</p>
+            </div>
+          `,
+        });
+
+        await transporter.sendMail({
+          from: `"Medical Vanguard" <${process.env.SMTP_USER || 'medicalvanguard@zohomail.in'}>`,
+          to: authorEmail,
+          subject: `Submission Received \u2014 ${submissionId}`,
+          html: `
+            <div style="font-family:Arial,sans-serif;max-width:600px">
+              <h2 style="color:#1e40af">Thank You for Your Submission</h2>
+              <p>Dear ${authorName},</p>
+              <p>We have received your manuscript <strong>\u201c${title}\u201d</strong>.</p>
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:16px;border-radius:8px;margin:20px 0">
+                <p style="margin:0;font-size:18px">Your Submission ID: <strong style="color:#15803d">${submissionId}</strong></p>
+              </div>
+              <p>Track your submission at <a href="https://medical-vanguard.vercel.app/track">medical-vanguard.vercel.app/track</a></p>
+              <p>Our editorial team will review your manuscript and contact you within 2-3 weeks.</p>
+              <p>Best regards,<br>Editorial Team, Medical Vanguard</p>
+            </div>
+          `,
+        });
+
+        emailSent = true;
+      } catch (emailErr) {
+        console.error('Email error (non-fatal):', emailErr);
+      }
+    }
 
     return NextResponse.json({
       success: true,
       submissionId,
-      message: "Submission received. You will receive a confirmation email shortly.",
+      message: 'Submission received successfully',
+      emailSent,
     });
+
   } catch (err) {
-    console.error("Submission error:", err);
-    return NextResponse.json(
-      { error: "Submission failed. Please try again." },
-      { status: 500 }
-    );
+    console.error('Submit error:', err);
+    return NextResponse.json({ error: 'Submission failed' }, { status: 500 });
   }
 }

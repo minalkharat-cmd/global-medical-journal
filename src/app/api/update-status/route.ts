@@ -1,107 +1,94 @@
-import { NextRequest, NextResponse } from "next/server";
-import nodemailer from "nodemailer";
+import { NextRequest, NextResponse } from 'next/server';
+import nodemailer from 'nodemailer';
+import { sql, initDb } from '@/lib/db';
 
-export const runtime = "nodejs";
-
-const STATUS_LABELS: Record<string, string> = {
-  received: "Received",
-  screening: "Under Initial Screening",
-  peer_review: "Sent to Peer Review",
-  major_revision: "Major Revision Required",
-  minor_revision: "Minor Revision Required",
-  accepted: "Accepted for Publication",
-  rejected: "Rejected",
-  published: "Published",
+const STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  received: { label: 'Received', color: '#6b7280' },
+  screening: { label: 'Under Screening', color: '#f59e0b' },
+  peer_review: { label: 'Under Peer Review', color: '#3b82f6' },
+  major_revision: { label: 'Major Revision Required', color: '#f97316' },
+  minor_revision: { label: 'Minor Revision Required', color: '#eab308' },
+  accepted: { label: 'Accepted', color: '#22c55e' },
+  rejected: { label: 'Rejected', color: '#ef4444' },
+  published: { label: 'Published', color: '#8b5cf6' },
 };
 
-const STATUS_COLORS: Record<string, string> = {
-  received: "#6c757d",
-  screening: "#0d6efd",
-  peer_review: "#0dcaf0",
-  major_revision: "#fd7e14",
-  minor_revision: "#ffc107",
-  accepted: "#198754",
-  rejected: "#dc3545",
-  published: "#6f42c1",
-};
-
-async function sendEmail(opts: { to: string; subject: string; html: string }) {
-  const smtpPass = process.env.SMTP_PASS;
-  if (!smtpPass) return false;
+export async function POST(request: NextRequest) {
   try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || "smtp.zoho.in",
-      port: parseInt(process.env.SMTP_PORT || "465"),
-      secure: true,
-      auth: { user: process.env.SMTP_USER || "medicalvanguard@zohomail.in", pass: smtpPass },
-    });
-    await transporter.sendMail({
-      from: '"Medical Vanguard" <medicalvanguard@zohomail.in>',
-      ...opts,
-    });
-    return true;
-  } catch (err) {
-    console.error("Email error:", err);
-    return false;
-  }
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
+    const body = await request.json();
     const { submissionId, authorEmail, authorName, title, status, editorNote } = body;
 
-    if (!submissionId || !authorEmail || !title || !status) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!submissionId || !status) {
+      return NextResponse.json({ error: 'submissionId and status are required' }, { status: 400 });
     }
 
-    const label = STATUS_LABELS[status] || status;
-    const color = STATUS_COLORS[status] || "#1a3a6b";
-    const name = authorName || "Author";
+    const statusInfo = STATUS_LABELS[status] || { label: status, color: '#6b7280' };
 
-    const html = `
-      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
-        <div style="background:#1a3a6b;padding:24px;text-align:center">
-          <h1 style="color:white;margin:0;font-size:22px">Medical Vanguard</h1>
-          <p style="color:#a8c4e0;margin:4px 0 0">Editorial Office Notification</p>
-        </div>
-        <div style="padding:28px;background:#fafafa;border:1px solid #e0e0e0">
-          <p style="font-size:16px">Dear ${name},</p>
-          <p>We are writing to inform you of an update regarding your manuscript submission to <strong>Medical Vanguard</strong>.</p>
-          <div style="background:white;border-radius:8px;border:2px solid ${color};padding:20px;margin:20px 0;text-align:center">
-            <p style="margin:0 0 8px;color:#555;font-size:13px">SUBMISSION ID</p>
-            <p style="margin:0 0 16px;font-size:20px;font-weight:bold;font-family:monospace;color:#1a3a6b">${submissionId}</p>
-            <p style="margin:0 0 8px;color:#555;font-size:13px">CURRENT STATUS</p>
-            <div style="display:inline-block;background:${color};color:white;padding:8px 24px;border-radius:20px;font-size:16px;font-weight:bold">${label}</div>
-          </div>
-          <p style="color:#444"><strong>Manuscript:</strong> ${title}</p>
-          ${editorNote ? `<div style="background:#fff8e1;border-left:4px solid #ffc107;padding:14px;border-radius:4px;margin:16px 0"><p style="margin:0 0 6px;font-weight:bold;color:#555">Note from Editorial Office:</p><p style="margin:0">${editorNote}</p></div>` : ""}
-          <p>You can track your manuscript status at any time at:<br/><a href="https://medical-vanguard.vercel.app/track" style="color:#1a3a6b">medical-vanguard.vercel.app/track</a></p>
-          <p>For any queries, please contact us at <a href="mailto:medicalvanguard@zohomail.in">medicalvanguard@zohomail.in</a>.</p>
-          <p>Best regards,<br/><strong>Editorial Office</strong><br/>Medical Vanguard</p>
-        </div>
-        <div style="padding:12px;text-align:center;font-size:11px;color:#999">
-          Medical Vanguard | 566 College Road, Mahasamund, CG 493445
-        </div>
-      </div>
-    `;
+    // Update DB
+    await initDb();
+    try {
+      await sql`
+        UPDATE submissions
+        SET status = ${status}, editor_note = ${editorNote || ''}, updated_at = NOW()
+        WHERE submission_id = ${submissionId}
+      `;
+    } catch (dbErr) {
+      console.error('DB update error (non-fatal):', dbErr);
+    }
 
-    const sent = await sendEmail({
-      to: authorEmail,
-      subject: `Manuscript Status Update [${submissionId}]: ${label} | Medical Vanguard`,
-      html,
-    });
+    let emailSent = false;
+    if (authorEmail && process.env.SMTP_PASS) {
+      try {
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST || 'smtp.zoho.in',
+          port: parseInt(process.env.SMTP_PORT || '465'),
+          secure: true,
+          auth: {
+            user: process.env.SMTP_USER || 'medicalvanguard@zohomail.in',
+            pass: process.env.SMTP_PASS,
+          },
+        });
+
+        await transporter.sendMail({
+          from: `"Medical Vanguard Editorial Office" <${process.env.SMTP_USER || 'medicalvanguard@zohomail.in'}>`,
+          to: authorEmail,
+          subject: `Submission Status Update: ${submissionId} — ${statusInfo.label}`,
+          html: `
+            <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+              <div style="background:#1e40af;padding:20px;text-align:center">
+                <h1 style="color:white;margin:0;font-size:20px">Medical Vanguard</h1>
+                <p style="color:#bfdbfe;margin:4px 0 0">Submission Status Update</p>
+              </div>
+              <div style="padding:24px">
+                <p>Dear ${authorName || 'Author'},</p>
+                <p>Your manuscript submission <strong>${submissionId}</strong> has a status update:</p>
+                ${title ? `<p style="color:#374151"><em>"${title}"</em></p>` : ''}
+                <div style="background:#f8fafc;border-radius:8px;padding:20px;margin:20px 0;text-align:center">
+                  <p style="margin:0;font-size:14px;color:#6b7280">Current Status</p>
+                  <p style="margin:8px 0 0;font-size:24px;font-weight:bold;color:${statusInfo.color}">${statusInfo.label}</p>
+                </div>
+                ${editorNote ? `<div style="background:#fff8f0;border-left:4px solid #f59e0b;padding:12px;margin:16px 0"><p style="margin:0;font-weight:bold;color:#92400e">Editor's Note:</p><p style="margin:8px 0 0;color:#374151">${editorNote}</p></div>` : ''}
+                <p>If you have any questions, please reply to this email or contact us at <a href="mailto:medicalvanguard@zohomail.in">medicalvanguard@zohomail.in</a></p>
+                <p>Best regards,<br><strong>Editorial Team</strong><br>Medical Vanguard</p>
+              </div>
+            </div>
+          `,
+        });
+        emailSent = true;
+      } catch (emailErr) {
+        console.error('Email error (non-fatal):', emailErr);
+      }
+    }
 
     return NextResponse.json({
       success: true,
-      emailSent: sent,
-      status: label,
-      message: sent
-        ? `Status update email sent to ${authorEmail}`
-        : "Status recorded. (Email not sent — SMTP not configured)",
+      emailSent,
+      status,
+      message: `Status updated to: ${statusInfo.label}`,
     });
+
   } catch (err) {
-    console.error("Status update error:", err);
-    return NextResponse.json({ error: "Failed to send status update" }, { status: 500 });
+    console.error('update-status error:', err);
+    return NextResponse.json({ error: 'Failed to update status' }, { status: 500 });
   }
 }
