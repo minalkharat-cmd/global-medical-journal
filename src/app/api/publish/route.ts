@@ -47,14 +47,6 @@ export async function POST(request: NextRequest) {
                         manuscript_type, doi, volume, issue, page_start, page_end,
                         published_at
                     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
-                    ON CONFLICT (submission_id) DO UPDATE SET
-                        manuscript_type = $6,
-                        doi = $7,
-                        volume = $8,
-                        issue = $9,
-                        page_start = $10,
-                        page_end = $11,
-                        published_at = NOW()
                 `;
                 await client.query(insertArticleSQL, [
                     submissionId,
