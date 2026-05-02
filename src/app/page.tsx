@@ -1,98 +1,197 @@
-import type { Metadata } from "next";
+import Link from 'next/link';
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Medical Vanguard | Advancing Medical Science",
-  description: "Medical Vanguard is a peer-reviewed, open-access medical journal publishing high-quality research across clinical medicine, biomedical sciences, and public health.",
-  keywords: "medical journal, open access, peer reviewed, clinical research, biomedical science",
+  title: 'Medical Vanguard Journal | Open Access Medical Research',
+  description: 'Medical Vanguard is a peer-reviewed, open access journal publishing original research, reviews, and case reports across all medical specialties.',
+  keywords: 'medical journal, open access, peer review, medical research, clinical trials, cardiology, oncology, neurology',
   openGraph: {
-    title: "Medical Vanguard | Advancing Medical Science",
-    description: "Peer-reviewed open-access medical journal",
-    url: "https://medical-vanguard.vercel.app",
-    siteName: "Medical Vanguard",
-    type: "website",
+    title: 'Medical Vanguard Journal',
+    description: 'Peer-reviewed, open access medical research journal',
+    type: 'website',
   },
 };
 
+const SPECIALTIES = [
+  { name: 'Cardiology', icon: '❤️', desc: 'Heart & cardiovascular research' },
+  { name: 'Oncology', icon: '🔬', desc: 'Cancer research & treatment' },
+  { name: 'Neurology', icon: '🧠', desc: 'Brain & nervous system' },
+  { name: 'Pediatrics', icon: '👶', desc: 'Child health & development' },
+  { name: 'Surgery', icon: '🏥', desc: 'Surgical techniques & outcomes' },
+  { name: 'Psychiatry', icon: '💭', desc: 'Mental health & behavior' },
+];
+
 export default function HomePage() {
-  const features = [
-    { title: "Open Access", desc: "All published articles are freely available worldwide with no paywalls, maximizing the reach and impact of your research.", color: "#3182ce", svg: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" },
-    { title: "Rigorous Peer Review", desc: "Every submission undergoes double-blind peer review by qualified experts, ensuring scientific integrity and methodological rigor.", color: "#059669", svg: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" },
-    { title: "Fast Turnaround", desc: "We respect your time. Initial editorial decisions within 2 weeks and full review within 4-6 weeks.", color: "#d97706", svg: "M13 10V3L4 14h7v7l9-11h-7z" },
-    { title: "Global Reach", desc: "Your research reaches scientists, clinicians, and policymakers worldwide through our open distribution network.", color: "#7c3aed", svg: "M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064" },
-    { title: "DOI Assignment", desc: "All accepted articles receive a unique Digital Object Identifier (DOI) via CrossRef for permanent, citable references.", color: "#dc2626", svg: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
-    { title: "No Publication Fees", desc: "We are committed to equitable publishing. There are zero article processing charges (APCs) for all authors.", color: "#0891b2", svg: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1" },
-  ];
-  const scope = ["Clinical Medicine & Surgery","Internal Medicine & Specialties","Public Health & Epidemiology","Biomedical & Translational Research","Pharmacology & Therapeutics","Medical Ethics & Health Policy","Global Health & Infectious Diseases","Nursing & Allied Health Sciences"];
-  const info = [["Journal Title","Medical Vanguard"],["Publisher","Medical Vanguard Editorial Office"],["Publication Frequency","Continuous"],["Access Type","Open Access"],["Article Processing Charges","None (Free)"],["Peer Review","Double-blind"],["Primary Language","English"],["Website","medical-vanguard.vercel.app"]];
   return (
-    <main>
-      <section style={{background:"linear-gradient(135deg,#1a365d 0%,#2b6cb0 50%,#3182ce 100%)",color:"white",padding:"80px 20px",textAlign:"center"}}>
-        <div style={{maxWidth:"800px",margin:"0 auto"}}>
-          <div style={{display:"inline-block",background:"rgba(255,255,255,0.15)",borderRadius:"20px",padding:"6px 18px",marginBottom:"20px",fontSize:"14px",fontWeight:600,letterSpacing:"1px"}}>OPEN ACCESS MEDICAL JOURNAL</div>
-          <h1 style={{fontSize:"clamp(2rem,5vw,3.5rem)",fontWeight:800,margin:"0 0 20px",lineHeight:1.2}}>Advancing Medical Science,<br/>One Discovery at a Time</h1>
-          <p style={{fontSize:"1.2rem",opacity:0.9,maxWidth:"600px",margin:"0 auto 36px"}}>Medical Vanguard is a peer-reviewed, open-access journal dedicated to publishing groundbreaking research in clinical medicine, biomedical sciences, and global public health.</p>
-          <div style={{display:"flex",gap:"16px",justifyContent:"center",flexWrap:"wrap"}}>
-            <a href="/guidelines" style={{background:"white",color:"#1a365d",padding:"14px 32px",borderRadius:"8px",fontWeight:700,textDecoration:"none",fontSize:"1rem"}}>Submit Manuscript</a>
-            <a href="/about" style={{background:"transparent",color:"white",padding:"14px 32px",borderRadius:"8px",fontWeight:600,textDecoration:"none",fontSize:"1rem",border:"2px solid rgba(255,255,255,0.6)"}}>Learn More</a>
+    <div className="min-h-screen bg-white">
+      {/* Navigation */}
+      <nav className="border-b border-gray-100 bg-white sticky top-0 z-10">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <span className="text-2xl">⚕️</span>
+            <div>
+              <span className="font-bold text-gray-900 text-lg">Medical Vanguard</span>
+              <span className="hidden sm:block text-xs text-gray-400 -mt-0.5">Open Access Medical Journal</span>
+            </div>
+          </Link>
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Link href="/articles" className="text-sm text-gray-600 hover:text-blue-600 transition-colors hidden sm:block">Articles</Link>
+            <Link href="/issues" className="text-sm text-gray-600 hover:text-blue-600 transition-colors hidden sm:block">Issues</Link>
+            <Link href="/submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm py-1.5 px-4 rounded-lg font-medium transition-colors">
+              Submit
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero */}
+      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white">
+        <div className="max-w-6xl mx-auto px-4 py-16 sm:py-24">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 bg-blue-500/30 backdrop-blur rounded-full px-3 py-1 text-sm mb-6">
+              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+              Open Access · Peer Reviewed · Free to Read
+            </div>
+            <h1 className="text-4xl sm:text-5xl font-bold leading-tight mb-4">
+              Advancing Medicine Through Open Research
+            </h1>
+            <p className="text-blue-100 text-lg mb-8 leading-relaxed">
+              Medical Vanguard publishes rigorous, peer-reviewed research across all medical specialties. 
+              Free to access, free to submit, committed to advancing global health.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/submit"
+                className="bg-white text-blue-700 hover:bg-blue-50 font-semibold py-3 px-6 rounded-xl transition-colors">
+                Submit Manuscript
+              </Link>
+              <Link href="/articles"
+                className="bg-blue-500/30 hover:bg-blue-500/50 backdrop-blur text-white font-semibold py-3 px-6 rounded-xl transition-colors border border-white/20">
+                Browse Articles
+              </Link>
+            </div>
           </div>
         </div>
       </section>
-      <section style={{background:"#2b6cb0",padding:"24px 20px"}}>
-        <div style={{maxWidth:"900px",margin:"0 auto",display:"flex",justifyContent:"space-around",flexWrap:"wrap",gap:"16px",color:"white",textAlign:"center"}}>
-          {[["2026","Founded"],["Free","No Article Charges"],["Open","Access Policy"],["4 Wk","Avg Review Time"]].map(([v,l],i)=>(
-            <div key={i}><div style={{fontSize:"1.8rem",fontWeight:800}}>{v}</div><div style={{fontSize:"0.85rem",opacity:0.85}}>{l}</div></div>
-          ))}
+
+      {/* Stats bar */}
+      <section className="border-b border-gray-100 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
+            {[
+              { value: 'Open Access', label: 'Publication Model' },
+              { value: '3–5 Days', label: 'Initial Review' },
+              { value: 'Double-Blind', label: 'Peer Review' },
+              { value: 'Continuous', label: 'Publication' },
+            ].map(s => (
+              <div key={s.label}>
+                <p className="text-lg font-bold text-gray-900">{s.value}</p>
+                <p className="text-sm text-gray-500">{s.label}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
-      <section style={{padding:"70px 20px",background:"#f8fafc"}}>
-        <div style={{maxWidth:"1000px",margin:"0 auto"}}>
-          <h2 style={{textAlign:"center",fontSize:"2rem",fontWeight:800,color:"#1a365d",marginBottom:"12px"}}>Why Publish With Us</h2>
-          <p style={{textAlign:"center",color:"#64748b",maxWidth:"600px",margin:"0 auto 50px"}}>We provide a rigorous, transparent, and author-friendly publishing experience.</p>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:"28px"}}>
-            {features.map((item,i)=>(
-              <div key={i} style={{background:"white",borderRadius:"12px",padding:"28px",boxShadow:"0 2px 12px rgba(0,0,0,0.08)",borderTop:`4px solid ${item.color}`}}>
-                <div style={{width:"48px",height:"48px",borderRadius:"12px",background:`${item.color}22`,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:"16px"}}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={item.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={item.svg}/></svg>
+
+      {/* Specialties */}
+      <section className="py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Browse by Specialty</h2>
+            <p className="text-gray-500">Research across the full spectrum of medical disciplines</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {SPECIALTIES.map(s => (
+              <Link key={s.name} href={`/articles?specialty=${encodeURIComponent(s.name)}`}
+                className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md hover:border-blue-200 transition-all group">
+                <div className="text-2xl mb-2">{s.icon}</div>
+                <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{s.name}</h3>
+                <p className="text-sm text-gray-500 mt-0.5">{s.desc}</p>
+              </Link>
+            ))}
+          </div>
+          <div className="text-center mt-6">
+            <Link href="/articles" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+              View all specialties →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Submission CTA */}
+      <section className="py-16 px-4 bg-gray-50 border-t border-gray-100">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid sm:grid-cols-2 gap-8 items-center">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">Ready to Submit?</h2>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                We accept original research, review articles, case reports, meta-analyses, and more. 
+                Our streamlined submission process ensures quick turnaround without compromising on quality.
+              </p>
+              <div className="space-y-3">
+                {[
+                  '✓ No submission fees',
+                  '✓ Double-blind peer review',
+                  '✓ DOI assigned to every article',
+                  '✓ Open access — free for all readers',
+                ].map(item => (
+                  <p key={item} className="text-sm text-gray-700">{item}</p>
+                ))}
+              </div>
+              <Link href="/submit" className="inline-block mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors">
+                Start Submission
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { type: 'Original Research', desc: 'Novel findings from clinical or basic science studies' },
+                { type: 'Review Article', desc: 'Comprehensive reviews of current evidence' },
+                { type: 'Case Report', desc: 'Unusual or instructive clinical cases' },
+                { type: 'Meta-Analysis', desc: 'Statistical synthesis of multiple studies' },
+              ].map(t => (
+                <div key={t.type} className="bg-white rounded-xl border border-gray-200 p-4">
+                  <p className="font-semibold text-sm text-gray-900 mb-1">{t.type}</p>
+                  <p className="text-xs text-gray-500 leading-relaxed">{t.desc}</p>
                 </div>
-                <h3 style={{fontSize:"1.1rem",fontWeight:700,color:"#1a365d",marginBottom:"10px"}}>{item.title}</h3>
-                <p style={{color:"#64748b",fontSize:"0.95rem",lineHeight:1.6}}>{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-      <section style={{padding:"70px 20px",background:"white"}}>
-        <div style={{maxWidth:"1000px",margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:"50px",alignItems:"center"}}>
-          <div>
-            <h2 style={{fontSize:"2rem",fontWeight:800,color:"#1a365d",marginBottom:"16px"}}>Scope & Coverage</h2>
-            <p style={{color:"#64748b",lineHeight:1.8,marginBottom:"20px"}}>Medical Vanguard welcomes submissions across all major areas of medicine and biomedical research. We are committed to broad, interdisciplinary coverage.</p>
-            <ul style={{listStyle:"none",padding:0,margin:0}}>
-              {scope.map((item,i)=>(
-                <li key={i} style={{display:"flex",alignItems:"center",gap:"10px",padding:"8px 0",borderBottom:"1px solid #f1f5f9",color:"#374151",fontSize:"0.95rem"}}>
-                  <span style={{width:"8px",height:"8px",borderRadius:"50%",background:"#3182ce",flexShrink:0,display:"inline-block"}}></span>{item}
-                </li>
               ))}
-            </ul>
+            </div>
           </div>
-          <div style={{background:"#f8fafc",borderRadius:"16px",padding:"32px"}}>
-            <h3 style={{fontSize:"1.3rem",fontWeight:700,color:"#1a365d",marginBottom:"20px",paddingBottom:"12px",borderBottom:"2px solid #e2e8f0"}}>Journal Information</h3>
-            {info.map(([label,value],i)=>(
-              <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid #e2e8f0",flexWrap:"wrap",gap:"8px"}}>
-                <span style={{color:"#64748b",fontSize:"0.9rem",fontWeight:500}}>{label}</span>
-                <span style={{color:"#1a365d",fontSize:"0.9rem",fontWeight:600,textAlign:"right"}}>{value}</span>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-10 px-4 mt-auto">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid sm:grid-cols-3 gap-8 mb-8">
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xl">⚕️</span>
+                <span className="font-bold">Medical Vanguard</span>
               </div>
-            ))}
+              <p className="text-sm text-gray-400 leading-relaxed">
+                Open access peer-reviewed journal dedicated to advancing medical knowledge globally.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold mb-3 text-sm">For Authors</p>
+              <div className="space-y-2">
+                <Link href="/submit" className="block text-sm text-gray-400 hover:text-white transition-colors">Submit Manuscript</Link>
+                <Link href="/articles" className="block text-sm text-gray-400 hover:text-white transition-colors">Browse Articles</Link>
+                <Link href="/issues" className="block text-sm text-gray-400 hover:text-white transition-colors">Past Issues</Link>
+              </div>
+            </div>
+            <div>
+              <p className="font-semibold mb-3 text-sm">For Reviewers</p>
+              <div className="space-y-2">
+                <Link href="/reviewer" className="block text-sm text-gray-400 hover:text-white transition-colors">Reviewer Portal</Link>
+                <Link href="/editor" className="block text-sm text-gray-400 hover:text-white transition-colors">Editor Dashboard</Link>
+              </div>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 pt-6 text-center text-xs text-gray-500">
+            © {new Date().getFullYear()} Medical Vanguard Journal. All rights reserved. Open Access under CC BY 4.0.
           </div>
         </div>
-      </section>
-      <section style={{background:"linear-gradient(135deg,#1a365d,#2b6cb0)",color:"white",padding:"60px 20px",textAlign:"center"}}>
-        <h2 style={{fontSize:"2rem",fontWeight:800,marginBottom:"16px"}}>Ready to Submit Your Research?</h2>
-        <p style={{opacity:0.9,maxWidth:"500px",margin:"0 auto 32px",fontSize:"1.1rem"}}>Join a growing community of researchers advancing medical science. Submission is free and open to all.</p>
-        <div style={{display:"flex",gap:"16px",justifyContent:"center",flexWrap:"wrap"}}>
-          <a href="/guidelines" style={{background:"white",color:"#1a365d",padding:"14px 32px",borderRadius:"8px",fontWeight:700,textDecoration:"none",fontSize:"1rem"}}>View Author Guidelines</a>
-          <a href="/contact" style={{background:"transparent",color:"white",padding:"14px 32px",borderRadius:"8px",fontWeight:600,textDecoration:"none",fontSize:"1rem",border:"2px solid rgba(255,255,255,0.6)"}}>Contact Editorial Office</a>
-        </div>
-      </section>
-    </main>
+      </footer>
+    </div>
   );
 }

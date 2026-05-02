@@ -1,160 +1,33 @@
-export const maxDuration = 30;
+import { NextRequest, NextResponse } from 'next/server';
+import { query } from '@/lib/db';
 
-import { NextRequest, NextResponse } from "next/server";
-import { Pool } from "pg";
-import nodemailer from "nodemailer";
-import crypto from "crypto";
-
-export async function POST(request: NextRequest) {
-  let body: Record<string, string> = {};
+export async function POST(req: NextRequest) {
   try {
-    body = await request.json();
-  } catch (_) {
-    return NextResponse.json({ error: "Invalid or empty request body" }, { status: 400 });
-  }
+    const body = await req.json();
+    const { title, authors, abstract, specialty, manuscript_type, author_email, keywords, cover_letter } = body;
 
-  const {
-    authorName,
-    authorEmail,
-    institution,
-    country,
-    title,
-    manuscriptType,
-    specialty,
-    abstract,
-    keywords,
-    coverLetter,
-    declaration,
-  } = body;
+    if (!title || !authors || !abstract || !specialty || !manuscript_type) {
+      return NextResponse.json({ error: 'Missing required fields: title, authors, abstract, specialty, manuscript_type' }, { status: 400 });
+    }
 
-  if (!authorName || !authorEmail || !title || !abstract) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-  }
+    const submission_id = `MV-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(authorEmail)) {
-    return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
-  }
-
-  const submissionId = "MV-" + new Date().toISOString().slice(0, 7).replace("-", "") + "-" + crypto.randomBytes(3).toString("hex").toUpperCase();
-
-  let dbInserted = false;
-  let emailSent = false;
-
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
-
-  const client = await pool.connect();
-  try {
-    let needsRecreate = false;
+    // Ensure optional columns exist
     try {
-      await client.query("SELECT email FROM submissions LIMIT 0");
-    } catch (_) {
-      needsRecreate = true;
-    }
+      await query(`ALTER TABLE submissions ADD COLUMN IF NOT EXISTS author_email VARCHAR(255)`);
+      await query(`ALTER TABLE submissions ADD COLUMN IF NOT EXISTS keywords TEXT`);
+      await query(`ALTER TABLE submissions ADD COLUMN IF NOT EXISTS cover_letter TEXT`);
+    } catch {}
 
-    if (needsRecreate) {
-      await client.query("DROP TABLE IF EXISTS submissions CASCADE");
-    }
+    await query(
+      `INSERT INTO submissions (submission_id, title, authors, abstract, specialty, manuscript_type, author_email, keywords, cover_letter, status, submitted_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'pending', NOW())`,
+      [submission_id, title.trim(), authors.trim(), abstract.trim(), specialty, manuscript_type, author_email || null, keywords || null, cover_letter || null]
+    );
 
-    const createSQL = "CREATE TABLE IF NOT EXISTS submissions (" +
-      "id SERIAL PRIMARY KEY," +
-      "submission_id VARCHAR(50) UNIQUE NOT NULL," +
-      "title TEXT NOT NULL," +
-      "abstract TEXT," +
-      "authors TEXT NOT NULL," +
-      "email VARCHAR(255) NOT NULL," +
-      "institution TEXT," +
-      "country TEXT," +
-      "manuscript_type VARCHAR(100)," +
-      "specialty VARCHAR(100)," +
-      "keywords TEXT," +
-      "cover_letter TEXT," +
-      "declaration TEXT," +
-      "status VARCHAR(50) DEFAULT 'pending'," +
-      "submitted_at TIMESTAMP DEFAULT NOW()," +
-      "updated_at TIMESTAMP DEFAULT NOW()" +
-    ")";
-    await client.query(createSQL);
-
-    const alterStatements = [
-      "ALTER TABLE submissions ADD COLUMN IF NOT EXISTS authors TEXT",
-      "ALTER TABLE submissions ADD COLUMN IF NOT EXISTS email VARCHAR(255)",
-      "ALTER TABLE submissions ADD COLUMN IF NOT EXISTS institution TEXT",
-      "ALTER TABLE submissions ADD COLUMN IF NOT EXISTS country TEXT",
-      "ALTER TABLE submissions ADD COLUMN IF NOT EXISTS manuscript_type VARCHAR(100)",
-      "ALTER TABLE submissions ADD COLUMN IF NOT EXISTS specialty VARCHAR(100)",
-      "ALTER TABLE submissions ADD COLUMN IF NOT EXISTS keywords TEXT",
-      "ALTER TABLE submissions ADD COLUMN IF NOT EXISTS cover_letter TEXT",
-      "ALTER TABLE submissions ADD COLUMN IF NOT EXISTS declaration TEXT",
-      "ALTER TABLE submissions ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'pending'",
-      "ALTER TABLE submissions ADD COLUMN IF NOT EXISTS submitted_at TIMESTAMP DEFAULT NOW()",
-      "ALTER TABLE submissions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW()",
-    ];
-
-    for (const stmt of alterStatements) {
-      try { await client.query(stmt); } catch (_) {}
-    }
-
-    const insertSQL = "INSERT INTO submissions " +
-      "(submission_id, title, abstract, authors, email, institution, country, manuscript_type, specialty, keywords, cover_letter, declaration) " +
-      "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)";
-
-    await client.query(insertSQL, [
-      submissionId,
-      title,
-      abstract || "",
-      authorName,
-      authorEmail,
-      institution || "",
-      country || "",
-      manuscriptType || "",
-      specialty || "",
-      keywords || "",
-      coverLetter || "",
-      declaration || "",
-    ]);
-
-    dbInserted = true;
-  } catch (err) {
-    console.error("DB insert error:", err);
-  } finally {
-    client.release();
-    await pool.end();
+    return NextResponse.json({ success: true, submission_id, message: 'Manuscript submitted successfully' });
+  } catch (e) {
+    console.error('Submit error:', e);
+    return NextResponse.json({ error: 'Failed to submit manuscript. Please try again.' }, { status: 500 });
   }
-
-  try {
-    const transporter = nodemailer.createTransport({
-      host: "smtp.zoho.in",
-      port: 465,
-      secure: true,
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 10000,
-      auth: {
-        user: "medicalvanguard@zohomail.in",
-        pass: process.env.ZOHO_PASS || "6rdHWzTG05fp",
-      },
-    });
-
-    await transporter.sendMail({
-      from: "Medical Vanguard <medicalvanguard@zohomail.in>",
-      to: authorEmail,
-      subject: "Submission Received - " + submissionId,
-      html: "<p>Dear " + authorName + ",</p><p>Your submission ID: <strong>" + submissionId + "</strong></p>",
-    });
-
-    emailSent = true;
-  } catch (err) {
-    console.error("Email error:", err);
-  }
-
-  return NextResponse.json({
-    success: true,
-    submissionId,
-    dbInserted,
-    emailSent,
-  });
 }
