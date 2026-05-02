@@ -48,6 +48,13 @@ function matchSpecialty(specialty: string, reviewerSpecialties: string[]): numbe
 }
 
 export async function POST(request: NextRequest) {
+  const authHeader = request.headers.get("Authorization");
+  const token = authHeader && authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  if (token !== "mv-admin-2025") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+
   try {
     const body = await request.json();
     const { submissionId, title, specialty, abstract } = body;

@@ -3,6 +3,13 @@ import pg from 'pg';
 const { Pool } = pg;
 
 export async function GET(request: NextRequest) {
+  const authHeader = request.headers.get("Authorization");
+  const token = authHeader && authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  if (token !== "mv-admin-2025") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+
   const url = new URL(request.url);
   const status = url.searchParams.get('status') || '';
   const pool = new Pool({

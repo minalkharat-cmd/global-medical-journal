@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
 export async function POST(request: NextRequest) {
+  const authHeader = request.headers.get("Authorization");
+  const token = authHeader && authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  if (token !== "mv-admin-2025") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+
   try {
     const data = await request.json();
     const smtpPass = process.env.SMTP_PASS;
