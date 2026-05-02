@@ -66,7 +66,9 @@ export async function initDb(): Promise<boolean> {
         volume INTEGER,
         issue INTEGER,
         page_start INTEGER,
-        page_end INTEGER
+        page_end INTEGER,
+                status VARCHAR(50) DEFAULT 'published',
+                UNIQUE(submission_id)
       )
     `;
     return true;

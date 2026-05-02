@@ -1,93 +1,266 @@
-import Link from "next/link";
-import type { Metadata } from "next";
-export const metadata: Metadata = {
-  title: "Articles | Medical Vanguard",
-  description: "Browse published articles in Medical Vanguard — peer-reviewed, open-access medical research.",
-};
+"use client";
+import { useState, useEffect, useCallback } from "react";
 
-const articles = [
-  {
-    id: "editorial-inaugural-2026",
-    type: "EDITORIAL",
-    typeColor: "bg-blue-100 text-blue-800",
-    title: "Open Access in the 21st Century: A New Journal for Global Medicine",
-    authors: "Minal Kharat",
-    date: "27 April 2026",
-    volume: "Vol. 1, No. 1 (2026)",
-    abstract: "The launch of Medical Vanguard marks a commitment to democratising access to high-quality biomedical research for clinicians, scientists, and health policymakers worldwide. This inaugural editorial articulates the journal\'s mission, scope, and founding principles.",
-    keywords: ["open access", "medical publishing", "peer review", "editorial"],
-    specialty: "General",
-  }
-];
+interface Article {
+  id: number;
+  submissionId: string;
+  title: string;
+  authors: string;
+  abstract: string;
+  specialty: string;
+  type: string;
+  doi: string | null;
+  publishedAt: string;
+  volume: number | null;
+  issue: number | null;
+  pages: string | null;
+}
+
+interface ApiResponse {
+  articles: Article[];
+  total: number;
+  page: number;
+  totalPages: number;
+  specialties: string[];
+}
 
 export default function ArticlesPage() {
+  const [data, setData] = useState<ApiResponse>({ articles: [], total: 0, page: 1, totalPages: 0, specialties: [] });
+  const [search, setSearch] = useState("");
+  const [specialty, setSpecialty] = useState("");
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<number | null>(null);
+  const [inputVal, setInputVal] = useState("");
+
+  const fetchArticles = useCallback(async (q: string, sp: string, pg: number) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(pg), limit: "9" });
+      if (q) params.set("search", q);
+      if (sp) params.set("specialty", sp);
+      const res = await fetch(`/api/articles?${params}`);
+      const json = await res.json();
+      setData(json);
+    } catch {
+      setData({ articles: [], total: 0, page: 1, totalPages: 0, specialties: [] });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchArticles(search, specialty, page); }, [search, specialty, page, fetchArticles]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSearch(inputVal);
+    setPage(1);
+  };
+
+  const handleSpecialty = (sp: string) => {
+    setSpecialty(sp === specialty ? "" : sp);
+    setPage(1);
+  };
+
+  const clearFilters = () => { setSearch(""); setInputVal(""); setSpecialty(""); setPage(1); };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-blue-900 text-white px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-1">
-          <span className="font-bold text-xl">Medical</span>
-          <span className="text-blue-300 font-bold text-xl ml-1">Vanguard</span>
-        </Link>
-        <div className="hidden md:flex gap-6 text-sm font-medium">
-          {["About","Articles","Guidelines","Editorial Board","Contact"].map(l => (
-            <Link key={l} href={`/${l.toLowerCase().replace(/ /g,"-")}`} className="hover:text-blue-200">{l}</Link>
-          ))}
-        </div>
-        <Link href="/submit" className="bg-blue-500 hover:bg-blue-400 text-white px-4 py-2 rounded-lg text-sm font-semibold">Submit</Link>
-      </nav>
-
-      <div className="bg-blue-900 text-white py-14 px-6 text-center">
-        <div className="max-w-3xl mx-auto">
-          <div className="inline-block bg-blue-700 text-blue-100 text-xs font-semibold px-4 py-1 rounded-full mb-4 tracking-widest uppercase">Open Access</div>
-          <h1 className="text-4xl font-bold mb-4">Published Articles</h1>
-          <p className="text-blue-200 text-lg">Peer-reviewed research freely available to the global medical community.</p>
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-900 to-blue-700 text-white py-14">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-4xl font-bold mb-3">Published Articles</h1>
+          <p className="text-blue-200 text-lg">Open-access peer-reviewed research</p>
+          {data.total > 0 && (
+            <p className="text-blue-300 text-sm mt-2">{data.total} article{data.total !== 1 ? "s" : ""} published</p>
+          )}
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-6 py-12">
-        <div className="flex items-center justify-between mb-8">
-          <p className="text-gray-600 text-sm">{articles.length} article{articles.length !== 1 ? "s" : ""} published</p>
-          <div className="flex gap-2">
-            <Link href="/submit" className="bg-blue-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors">Submit Manuscript</Link>
-          </div>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/* Search bar */}
+        <form onSubmit={handleSearch} className="flex gap-3 mb-6">
+          <input
+            type="text"
+            value={inputVal}
+            onChange={e => setInputVal(e.target.value)}
+            placeholder="Search by title, author, or keyword..."
+            className="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button type="submit" className="bg-blue-700 text-white px-6 py-3 rounded-lg text-sm font-medium hover:bg-blue-800 transition-colors">
+            Search
+          </button>
+          {(search || specialty) && (
+            <button type="button" onClick={clearFilters} className="border border-gray-300 text-gray-600 px-4 py-3 rounded-lg text-sm hover:bg-gray-100 transition-colors">
+              Clear
+            </button>
+          )}
+        </form>
 
-        <div className="space-y-6">
-          {articles.map(article => (
-            <div key={article.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-              <div className="flex gap-2 mb-3">
-                <span className={`text-xs font-bold px-3 py-1 rounded-full ${article.typeColor}`}>{article.type}</span>
-                <span className="bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full">OPEN ACCESS</span>
+        {/* Specialty filters */}
+        {data.specialties.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-8">
+            {data.specialties.map(sp => (
+              <button
+                key={sp}
+                onClick={() => handleSpecialty(sp)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                  specialty === sp
+                    ? "bg-blue-700 text-white border-blue-700"
+                    : "bg-white text-gray-600 border-gray-300 hover:border-blue-400 hover:text-blue-600"
+                }`}
+              >
+                {sp}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Active filters banner */}
+        {(search || specialty) && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 mb-6 text-sm text-blue-700 flex items-center justify-between">
+            <span>
+              Showing {data.total} result{data.total !== 1 ? "s" : ""}
+              {search && <> for &ldquo;<strong>{search}</strong>&rdquo;</>}
+              {specialty && <> in <strong>{specialty}</strong></>}
+            </span>
+            <button onClick={clearFilters} className="text-blue-500 hover:text-blue-700 font-medium ml-4">✕ Clear</button>
+          </div>
+        )}
+
+        {/* Articles grid */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white rounded-xl border border-gray-200 p-6 animate-pulse">
+                <div className="h-3 bg-gray-200 rounded mb-4 w-1/3" />
+                <div className="h-5 bg-gray-200 rounded mb-2" />
+                <div className="h-5 bg-gray-200 rounded mb-4 w-3/4" />
+                <div className="h-3 bg-gray-200 rounded mb-2 w-1/2" />
+                <div className="h-20 bg-gray-100 rounded mt-4" />
               </div>
-              <Link href={`/articles/${article.id}`}>
-                <h2 className="text-xl font-bold text-gray-900 hover:text-blue-700 transition-colors mb-2 cursor-pointer">{article.title}</h2>
-              </Link>
-              <p className="text-blue-700 text-sm font-medium mb-1">{article.authors}</p>
-              <p className="text-gray-500 text-xs mb-3">{article.volume} &nbsp;|&nbsp; Published {article.date} &nbsp;|&nbsp; {article.specialty}</p>
-              <p className="text-gray-600 text-sm leading-relaxed mb-4">{article.abstract}</p>
-              <div className="flex flex-wrap gap-1 mb-4">
-                {article.keywords.map(kw => (
-                  <span key={kw} className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-md">{kw}</span>
-                ))}
-              </div>
-              <Link href={`/articles/${article.id}`} className="text-blue-700 font-semibold text-sm hover:underline">Read Full Article →</Link>
+            ))}
+          </div>
+        ) : data.articles.length === 0 ? (
+          <div className="text-center py-24 bg-white rounded-xl border border-gray-200">
+            <div className="text-6xl mb-4">📄</div>
+            <h2 className="text-2xl font-semibold text-gray-700 mb-2">
+              {search || specialty ? "No articles match your search" : "No Articles Published Yet"}
+            </h2>
+            <p className="text-gray-500 max-w-md mx-auto">
+              {search || specialty
+                ? "Try different keywords or remove the specialty filter."
+                : "Articles will appear here once peer-reviewed manuscripts are accepted and published."}
+            </p>
+            {(search || specialty) && (
+              <button onClick={clearFilters} className="mt-4 text-blue-600 hover:underline text-sm">Clear all filters</button>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {data.articles.map(article => (
+                <div key={article.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                  <div className="p-6 flex-1">
+                    {/* Type badge */}
+                    {article.type && (
+                      <span className="inline-block px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 rounded mb-3 uppercase tracking-wide">
+                        {article.type.replace(/_/g, " ")}
+                      </span>
+                    )}
+                    {/* Title */}
+                    <h3 className="text-base font-bold text-gray-900 mb-2 leading-snug line-clamp-3">
+                      {article.title}
+                    </h3>
+                    {/* Authors */}
+                    <p className="text-sm text-gray-500 mb-3 italic">{article.authors}</p>
+                    {/* Meta */}
+                    <div className="flex flex-wrap gap-2 text-xs text-gray-400 mb-4">
+                      {article.specialty && (
+                        <span className="bg-gray-100 px-2 py-0.5 rounded text-gray-600">{article.specialty}</span>
+                      )}
+                      {article.volume && article.issue && (
+                        <span>Vol. {article.volume}, No. {article.issue}</span>
+                      )}
+                      {article.pages && <span>pp. {article.pages}</span>}
+                      {article.publishedAt && (
+                        <span>{new Date(article.publishedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
+                      )}
+                    </div>
+                    {/* Abstract (expandable) */}
+                    {article.abstract && (
+                      <div>
+                        <p className={`text-xs text-gray-600 leading-relaxed ${expanded === article.id ? "" : "line-clamp-3"}`}>
+                          {article.abstract}
+                        </p>
+                        {article.abstract.length > 180 && (
+                          <button
+                            onClick={() => setExpanded(expanded === article.id ? null : article.id)}
+                            className="text-xs text-blue-600 hover:underline mt-1"
+                          >
+                            {expanded === article.id ? "Show less" : "Read more"}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {/* Footer */}
+                  {article.doi && (
+                    <div className="px-6 py-3 border-t border-gray-100 bg-gray-50 rounded-b-xl">
+                      <a
+                        href={`https://doi.org/${article.doi}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:underline font-mono"
+                      >
+                        DOI: {article.doi}
+                      </a>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        <div className="mt-12 bg-blue-50 rounded-2xl p-8 text-center border border-blue-100">
-          <h3 className="text-xl font-bold text-gray-900 mb-3">Submit Your Research</h3>
-          <p className="text-gray-600 mb-6 max-w-xl mx-auto">Medical Vanguard is actively accepting submissions across all medical specialties. No publication fees. Double-blind peer review. Fast turnaround.</p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <Link href="/submit" className="bg-blue-900 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-800 transition-colors">Submit a Manuscript</Link>
-            <Link href="/guidelines" className="border border-blue-900 text-blue-900 px-6 py-3 rounded-xl font-semibold hover:bg-blue-50 transition-colors">Author Guidelines</Link>
-          </div>
-        </div>
+            {/* Pagination */}
+            {data.totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-10">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  ← Prev
+                </button>
+                {[...Array(data.totalPages)].map((_, i) => {
+                  const pg = i + 1;
+                  if (pg === 1 || pg === data.totalPages || Math.abs(pg - page) <= 1) {
+                    return (
+                      <button
+                        key={pg}
+                        onClick={() => setPage(pg)}
+                        className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
+                          pg === page ? "bg-blue-700 text-white" : "border border-gray-300 text-gray-600 hover:bg-gray-50"
+                        }`}
+                      >
+                        {pg}
+                      </button>
+                    );
+                  }
+                  if (Math.abs(pg - page) === 2) return <span key={pg} className="text-gray-400">…</span>;
+                  return null;
+                })}
+                <button
+                  onClick={() => setPage(p => Math.min(data.totalPages, p + 1))}
+                  disabled={page === data.totalPages}
+                  className="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next →
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </div>
-
-      <footer className="bg-blue-900 text-white py-8 text-center text-sm text-blue-300">
-        <p>© 2026 Medical Vanguard. All rights reserved. Open Access under CC BY 4.0 License.</p>
-      </footer>
     </div>
   );
 }

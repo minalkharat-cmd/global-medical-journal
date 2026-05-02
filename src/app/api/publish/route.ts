@@ -5,9 +5,7 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 export async function POST(request: NextRequest) {
     const authHeader = request.headers.get("Authorization");
-    const token = authHeader && authHeader.startsWith("Bearer ")
-        ? authHeader.slice(7)
-        : null;
+    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
     if (token !== "mv-admin-2025") {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -21,40 +19,45 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "submissionId required" }, { status: 400 });
         }
 
-        // Get submission details
         const subResult = await client.query(
             "SELECT * FROM submissions WHERE submission_id = $1",
             [submissionId]
         );
-
         if (subResult.rows.length === 0) {
             return NextResponse.json({ error: "Submission not found" }, { status: 404 });
         }
         const sub = subResult.rows[0];
 
-        // Update submission status to published
-        const updateSQL = "UPDATE submissions SET status = $1 WHERE submission_id = $2";
-        await client.query(updateSQL, ["published", submissionId]);
+        await client.query(
+            "UPDATE submissions SET status = $1 WHERE submission_id = $2",
+            ["published", submissionId]
+        );
 
-        // Insert/update into articles table (if it exists)
         try {
-            const checkTableSQL = "SELECT to_regclass('public.articles') as exists";
-            const tableCheck = await client.query(checkTableSQL);
+            const tableCheck = await client.query("SELECT to_regclass('public.articles') as exists");
             if (tableCheck.rows[0].exists) {
-                const insertArticleSQL = `
+                const sql = `
                     INSERT INTO articles (
                         submission_id, title, abstract, authors, specialty,
-                        manuscript_type, doi, volume, issue, page_start, page_end,
-                        published_at
-                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
+                        manuscript_type, doi, volume, issue, page_start, page_end, status
+                    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'published')
+                    ON CONFLICT (submission_id) DO UPDATE SET
+                        manuscript_type = EXCLUDED.manuscript_type,
+                        doi = EXCLUDED.doi,
+                        volume = EXCLUDED.volume,
+                        issue = EXCLUDED.issue,
+                        page_start = EXCLUDED.page_start,
+                        page_end = EXCLUDED.page_end,
+                        status = 'published',
+                        published_at = NOW()
                 `;
-                await client.query(insertArticleSQL, [
+                await client.query(sql, [
                     submissionId,
                     sub.title || "",
                     sub.abstract || "",
                     sub.authors || "",
                     sub.specialty || "",
-                    sub.manuscript_type || sub.type || "original_research",
+                    sub.manuscript_type || "original_research",
                     doi || null,
                     volume ? parseInt(volume) : null,
                     issue ? parseInt(issue) : null,
@@ -63,7 +66,7 @@ export async function POST(request: NextRequest) {
                 ]);
             }
         } catch (_) {
-            // articles table may not exist, that is ok
+            // articles table may not exist yet
         }
 
         return NextResponse.json({
