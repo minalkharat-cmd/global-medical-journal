@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { Pool } from 'pg';
 
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'mv-admin-2025';
 
 export async function GET(req: NextRequest) {
@@ -8,6 +9,7 @@ export async function GET(req: NextRequest) {
   if (auth !== `Bearer ${ADMIN_TOKEN}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  const client = await pool.connect();
   try {
     const url = new URL(req.url);
     const status = url.searchParams.get('status') || '';
@@ -17,8 +19,8 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(url.searchParams.get('limit') || '20');
     const offset = (page - 1) * limit;
 
-    let conditions = [];
-    let params: string[] = [];
+    const conditions: string[] = [];
+    const params: (string | number)[] = [];
     let idx = 1;
     if (status) { conditions.push(`s.status = $${idx++}`); params.push(status); }
     if (specialty) { conditions.push(`s.specialty = $${idx++}`); params.push(specialty); }
@@ -26,14 +28,17 @@ export async function GET(req: NextRequest) {
 
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
-    const countResult = await query(`SELECT COUNT(*) FROM submissions s ${where}`, params);
+    const countResult = await client.query(`SELECT COUNT(*) FROM submissions s ${where}`, params);
     const total = parseInt(countResult.rows[0].count);
 
-    const result = await query(
-      `SELECT s.*, 
-       (SELECT COUNT(*) FROM reviews r WHERE r.submission_id = s.submission_id) as review_count,
-       (SELECT STRING_AGG(r.recommendation, ', ') FROM reviews r WHERE r.submission_id = s.submission_id) as recommendations
-       FROM submissions s ${where} ORDER BY s.submitted_at DESC LIMIT $${idx} OFFSET $${idx+1}`,
+    let reviewJoin = '';
+    try {
+      reviewJoin = `(SELECT COUNT(*) FROM reviews r WHERE r.submission_id = s.submission_id) as review_count,
+       (SELECT STRING_AGG(r.recommendation, ', ') FROM reviews r WHERE r.submission_id = s.submission_id) as recommendations,`;
+    } catch { reviewJoin = ''; }
+
+    const result = await client.query(
+      `SELECT s.*, ${reviewJoin} s.id as _id FROM submissions s ${where} ORDER BY s.submitted_at DESC LIMIT $${idx} OFFSET $${idx+1}`,
       [...params, limit, offset]
     );
 
@@ -41,5 +46,7 @@ export async function GET(req: NextRequest) {
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: 'Failed to fetch submissions' }, { status: 500 });
+  } finally {
+    client.release();
   }
 }

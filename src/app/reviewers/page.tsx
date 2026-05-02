@@ -112,7 +112,7 @@ export default function ReviewersPage() {
                   <label className="block text-sm font-semibold text-gray-700 mb-1">{label}</label>
                   <input required={label.includes("*")} type={type}
                     className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={(formData as Record<string, string>)[field]}
+                    value={(formData as Record<string, unknown>)[field] as string}
                     onChange={e => setFormData({...formData, [field]: e.target.value})}
                     placeholder={placeholder} />
                 </div>
