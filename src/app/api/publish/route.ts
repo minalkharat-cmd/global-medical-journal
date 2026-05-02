@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       const checkTableSQL = "SELECT to_regclass('public.articles') as exists";
       const tableCheck = await client.query(checkTableSQL);
       if (tableCheck.rows[0].exists) {
-        const insertArticleSQL = "INSERT INTO articles (submission_id, title, abstract, authors, specialty, status, published_at) VALUES ($1, $2, $3, $4, $5, $6, NOW()) ON CONFLICT (submission_id) DO UPDATE SET status = $6, published_at = NOW()";
+        const insertArticleSQL = "INSERT INTO articles (submission_id, title, abstract, authors, specialty, type, doi, volume, issue, pages, status, published_at) VALUES ($1, $2, $3, $4, $5, $7, $8, $9, $10, $11, $6, NOW()) ON CONFLICT (submission_id) DO UPDATE SET status = $6, type = $7, doi = $8, volume = $9, issue = $10, pages = $11, published_at = NOW()";
         await client.query(insertArticleSQL, [
           submissionId,
           sub.title || "",
@@ -55,6 +55,11 @@ export async function POST(request: NextRequest) {
           sub.authors || "",
           sub.specialty || "",
           "published",
+            sub.type || "original",
+            doi || null,
+            volume ? parseInt(volume) : null,
+            issue ? parseInt(issue) : null,
+            (pageStart && pageEnd) ? `${pageStart}-${pageEnd}` : null,
         ]);
       }
     } catch (_) {
